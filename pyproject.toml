@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mystree-triage-engine"
-version = "0.1.0"
-description = "Deterministic Women's Health Clinical Risk Triage Engine (v0.1 Foundation)"
+version = "0.2.0-alpha"
+description = "Deterministic Women's Health Clinical Risk Triage Engine (v0.2 Day 4 & Day 5 Complete)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Proprietary" }
@@ -36,4 +36,8 @@ dev = [
 
 [project.scripts]
 triage-cli = "src.cli:main"
+triage-flowcharts = "src.flowchart_generator:main"
+triage-generate-cases = "src.synthetic_generator:main"
+triage-review-server = "src.review_server:main"
+triage-report = "src.feedback_report:main"
 

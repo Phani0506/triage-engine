@@ -132,6 +132,7 @@ class TriageMetadata:
     pending_clinical_decisions: List[str] = field(default_factory=list)
     deferred_pathways: List[Dict[str, Any]] = field(default_factory=list)
     candidate_rules_matched: List[str] = field(default_factory=list)
+    proposed_mappings_matched: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -140,6 +141,7 @@ class TriageMetadata:
             "pending_clinical_decisions": self.pending_clinical_decisions,
             "deferred_pathways": self.deferred_pathways,
             "candidate_rules_matched": self.candidate_rules_matched,
+            "proposed_mappings_matched": self.proposed_mappings_matched,
         }
 
 
@@ -201,6 +203,7 @@ class Rule:
     physical_exam_reason: Optional[str] = None
     conditional_escalation: Optional[ConditionalEscalation] = None
     is_candidate_rule: bool = False
+    is_proposed_mapping: bool = False
     pending_clinical_decision: Optional[str] = None
     proposed_levels: Optional[Dict[str, str]] = None
     source: Optional[SourceCitation] = None
@@ -216,6 +219,8 @@ class PathwayStep:
     if_unknown: Optional[str] = None
     deferred_pathway: Optional[str] = None
     terminal_rule_id: Optional[str] = None
+    terminal_type: Optional[str] = None
+    decision: Optional[str] = None
     ask_next: Optional[List[str]] = None
 
 
@@ -225,4 +230,83 @@ class Pathway:
     name: str
     starts_when: Dict[str, Any]
     steps: List[PathwayStep]
+
+
+@dataclass
+class OracleExpectation:
+    expected_level: str  # emergency, clinic_visit, teleconsultation, self_care, none
+    expected_colour: str  # red, amber, yellow, green, none
+    expected_status: str  # complete, need_more_info, clinical_decision_required, out_of_scope
+    expected_rule_ids: List[str] = field(default_factory=list)
+    expected_reasons: List[str] = field(default_factory=list)
+    oracle_source_note: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "expected_level": self.expected_level,
+            "expected_colour": self.expected_colour,
+            "expected_status": self.expected_status,
+            "expected_rule_ids": self.expected_rule_ids,
+            "expected_reasons": self.expected_reasons,
+            "oracle_source_note": self.oracle_source_note,
+        }
+
+
+@dataclass
+class SyntheticCase:
+    case_id: str
+    collection: str  # 'practice' or 'exam'
+    topic: str  # 'red_flags', 'irregular_periods', 'pcos', 'endometriosis', 'fertility', 'multi_topic'
+    difficulty: str  # 'normal', 'borderline', 'complicated', 'high_risk', 'missing_info'
+    patient_summary_lines: List[str]
+    patient_inputs: Dict[str, Any]
+    missing_or_unknown_fields: List[str] = field(default_factory=list)
+    oracle: Optional[OracleExpectation] = None
+    batch_id: Optional[str] = None
+    case_sha256: str = ""
+    synthetic: bool = True
+
+    def to_dict(self, include_oracle: bool = True) -> Dict[str, Any]:
+        d: Dict[str, Any] = {
+            "case_id": self.case_id,
+            "collection": self.collection,
+            "batch_id": self.batch_id,
+            "topic": self.topic,
+            "difficulty": self.difficulty,
+            "patient_summary_lines": self.patient_summary_lines,
+            "patient_inputs": self.patient_inputs,
+            "missing_or_unknown_fields": self.missing_or_unknown_fields,
+            "case_sha256": self.case_sha256,
+            "synthetic": self.synthetic,
+        }
+        if include_oracle and self.oracle:
+            d["oracle"] = self.oracle.to_dict()
+        return d
+
+
+@dataclass
+class DoctorReviewRecord:
+    review_id: str
+    case_id: str
+    case_type: str  # 'practice', 'exam'
+    batch_id: str
+    doctor_name: str
+    patient_data_json: str
+    doctor_level: str
+    doctor_colour: str
+    doctor_initial_notes: Optional[str]
+    engine_output_json: str
+    engine_level: str
+    engine_colour: str
+    fired_rule_ids_json: str
+    engine_version: str
+    rule_set_version: str
+    agreement_status: str  # 'same', 'engine_higher', 'engine_lower'
+    verdict: Optional[str] = None  # 'doctor_is_right', 'engine_is_right', 'both_fine'
+    problem_chips_json: Optional[str] = None
+    doctor_feedback_text: Optional[str] = None
+    correction_request: Optional[str] = None
+    review_status: str = "assessed"  # 'assessed', 'feedback_complete'
+    submitted_at: str = ""
+
 

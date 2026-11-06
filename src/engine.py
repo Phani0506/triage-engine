@@ -34,12 +34,14 @@ class TriageEngine:
         candidate_rules_enabled: bool = False,
         rf006_policy: Optional[str] = None,  # None (unresolved DEC-03 pending doctor approval), 'clinic_visit', or 'emergency'
         rf005_policy: Optional[str] = None,  # None (unresolved DEC-02 pending doctor approval), 'single_marker_emergency', or 'combination_required'
+        endo008_policy: Optional[str] = None,  # None (unresolved DEC-07 pending doctor approval), 'clinic_visit', or None
     ):
         self.schema = schema or load_schema()
         self.rules = rules if rules is not None else load_rules(schema=self.schema)
         self.candidate_rules_enabled = candidate_rules_enabled
         self.rf006_policy = rf006_policy
         self.rf005_policy = rf005_policy
+        self.endo008_policy = endo008_policy
 
         if pathway_runner is not None:
             self.pathway_runner = pathway_runner
@@ -72,6 +74,7 @@ class TriageEngine:
         pending_decisions: List[str] = []
         deferred_pathways: List[Dict[str, Any]] = []
         candidate_rules_matched: List[str] = []
+        proposed_mappings_matched: List[str] = []
         matching_rules: List[Rule] = []
         effective_levels: Dict[str, UrgencyLevel] = {}
         missing_inputs_set: Set[str] = set()
@@ -257,17 +260,83 @@ class TriageEngine:
 
             if pw_res.terminal_rule_id and pw_res.terminal_rule_id in self.rules_by_id:
                 term_rule = self.rules_by_id[pw_res.terminal_rule_id]
-                if term_rule not in matching_rules:
-                    matching_rules.append(term_rule)
-                    fired_rules.append(term_rule.id)
-                    effective_levels[term_rule.id] = term_rule.level
+                if term_rule.id == "ENDO-008":
+                    if "ENDO-008" not in proposed_mappings_matched:
+                        proposed_mappings_matched.append("ENDO-008")
+                    if "DEC-07" not in pending_decisions:
+                        pending_decisions.append("DEC-07")
+                    if self.endo008_policy == "clinic_visit":
+                        if term_rule not in matching_rules:
+                            matching_rules.append(term_rule)
+                            fired_rules.append(term_rule.id)
+                            effective_levels[term_rule.id] = term_rule.level
+                else:
+                    if term_rule.is_proposed_mapping:
+                        if term_rule.id not in proposed_mappings_matched:
+                            proposed_mappings_matched.append(term_rule.id)
+                    if term_rule.pending_clinical_decision:
+                        if term_rule.pending_clinical_decision not in pending_decisions:
+                            pending_decisions.append(term_rule.pending_clinical_decision)
+                    if term_rule not in matching_rules:
+                        matching_rules.append(term_rule)
+                        fired_rules.append(term_rule.id)
+                        effective_levels[term_rule.id] = term_rule.level
 
-        # Step 4: Evaluate Standalone Rules (IRR-001..IRR-013)
-        domain_rules = [r for r in self.rules if r.domain in ["irregular_periods", "general"]]
+        # Step 4: Evaluate Standalone Rules across clinical domains
+        active_domains = {"irregular_periods", "general"}
+        for p in self.pathway_runner.pathways.values():
+            st, _ = ConditionEvaluator.evaluate(p.starts_when, context)
+            if st == TriState.TRUE:
+                if p.id in ["PATH-AMEN-01", "PATH-HMB-01"]:
+                    active_domains.add("irregular_periods")
+                elif p.id == "PATH-PCOS-01":
+                    active_domains.add("pcos")
+                elif p.id == "PATH-ENDO-01":
+                    active_domains.add("endometriosis")
+                elif p.id == "PATH-FERT-01":
+                    active_domains.add("fertility")
+
+        pcos_markers = ["hirsutism_excessive_hair", "moderate_severe_cystic_acne", "male_pattern_alopecia", "pcom_on_ultrasound", "known_pcos", "rapid_virilization_signs", "rapid_virilization"]
+        if any(context.get(k) == "yes" for k in pcos_markers):
+            active_domains.add("pcos")
+
+        endo_markers = ["period_pain_affects_daily_life", "deep_dyspareunia", "cyclical_bowel_symptoms", "cyclical_urinary_symptoms", "chronic_pelvic_pain_6plus_months", "pelvic_mass_or_fullness", "prior_endometriosis_treatment_failed", "known_endometriosis"]
+        if any(context.get(k) == "yes" for k in endo_markers):
+            active_domains.add("endometriosis")
+
+        fert_markers = ["trying_to_conceive", "second_trimester_loss", "unable_to_have_penetrative_intercourse"]
+        if any(context.get(k) == "yes" for k in fert_markers) or (context.get("miscarriage_count") not in [None, "unknown"] and float(context.get("miscarriage_count", 0)) > 0):
+            active_domains.add("fertility")
+
+        domain_rules = [
+            r for r in self.rules
+            if r.domain in ["irregular_periods", "pcos", "endometriosis", "fertility", "general"]
+        ]
 
         for rule in domain_rules:
+            if rule.id == "ENDO-008":
+                app_state, _ = ConditionEvaluator.evaluate(rule.when, context)
+                if app_state == TriState.TRUE:
+                    if "ENDO-008" not in proposed_mappings_matched:
+                        proposed_mappings_matched.append("ENDO-008")
+                    if "DEC-07" not in pending_decisions:
+                        pending_decisions.append("DEC-07")
+                    if self.endo008_policy == "clinic_visit":
+                        if rule not in matching_rules:
+                            matching_rules.append(rule)
+                            fired_rules.append(rule.id)
+                        effective_levels[rule.id] = rule.level
+                continue
+
             app_state, missing = ConditionEvaluator.evaluate(rule.when, context)
             if app_state == TriState.TRUE:
+                if rule.is_proposed_mapping:
+                    if rule.id not in proposed_mappings_matched:
+                        proposed_mappings_matched.append(rule.id)
+                if rule.pending_clinical_decision:
+                    if rule.pending_clinical_decision not in pending_decisions:
+                        pending_decisions.append(rule.pending_clinical_decision)
+
                 # Check for conditional escalation (e.g. IRR-012)
                 level = rule.level
                 if rule.conditional_escalation:
@@ -280,7 +349,8 @@ class TriageEngine:
                     fired_rules.append(rule.id)
                 effective_levels[rule.id] = level
             elif app_state == TriState.UNKNOWN:
-                missing_inputs_set.update(missing)
+                if rule.domain in active_domains:
+                    missing_inputs_set.update(missing)
 
         # Step 5: Resolve Highest Clinical Urgency
         if not matching_rules:
@@ -299,7 +369,10 @@ class TriageEngine:
                     metadata=TriageMetadata(
                         fired_rules=[],
                         evaluated_gates=evaluated_gates,
+                        pending_clinical_decisions=sorted(list(set(pending_decisions))),
                         deferred_pathways=deferred_pathways,
+                        candidate_rules_matched=candidate_rules_matched,
+                        proposed_mappings_matched=proposed_mappings_matched,
                     ),
                 )
 
@@ -314,6 +387,7 @@ class TriageEngine:
                 pending_decisions=pending_decisions,
                 deferred_pathways=deferred_pathways,
                 candidate_rules_matched=candidate_rules_matched,
+                proposed_mappings_matched=proposed_mappings_matched,
             )
 
         # Sort matching rules by effective urgency rank (highest first)
@@ -321,20 +395,68 @@ class TriageEngine:
         highest_rule = matching_rules[0]
         highest_level = effective_levels[highest_rule.id]
 
-        # Safety Check: Strict Green Lockout
-        # Green (SELF_CARE) can NEVER be issued if any required field is unknown
+        # Safety Check: Strict Green Lockout across all 4 topics
+        # Green (SELF_CARE) can NEVER be issued if any required field or Red Flag is unknown
         if highest_level == UrgencyLevel.SELF_CARE:
-            if missing_inputs_set or any(context.get(k) == "unknown" for k in ["never_had_period", "cycle_length_days", "bleeding_duration_days", "self_reported_heavy_flow"]):
+            green_blocked = False
+            green_missing: Set[str] = set()
+
+            # Universal Red Flag safety check: all red flags must be conclusively ruled out
+            red_flag_fields = [
+                "acute_severe_pelvic_pain",
+                "shoulder_tip_pain",
+                "soaking_pad_hourly_2plus_hours",
+                "fainting_or_near_fainting",
+                "pelvic_pain_any",
+                "vaginal_bleeding_now",
+            ]
+            for rf in red_flag_fields:
+                if context.get(rf) in [None, "unknown"]:
+                    green_blocked = True
+                    green_missing.add(rf)
+
+            # Check specific topic requirements for the matching green rules
+            for rule in matching_rules:
+                if rule.id == "IRR-001":
+                    required = ["never_had_period", "cycle_length_days", "bleeding_duration_days", "self_reported_heavy_flow"]
+                    for k in required:
+                        if context.get(k) in [None, "unknown"]:
+                            green_blocked = True
+                            green_missing.add(k)
+                    if context.get("pregnancy_excluded") is not True:
+                        green_blocked = True
+                        green_missing.add("pregnancy_test_result")
+                elif rule.id == "PCOS-009":
+                    required = ["cycle_length_days", "hirsutism_excessive_hair", "moderate_severe_cystic_acne", "male_pattern_alopecia", "known_pcos"]
+                    for k in required:
+                        if context.get(k) in [None, "unknown"]:
+                            green_blocked = True
+                            green_missing.add(k)
+                elif rule.id == "ENDO-001":
+                    required = ["period_pain_affects_daily_life", "deep_dyspareunia", "cyclical_bowel_symptoms", "cyclical_urinary_symptoms", "chronic_pelvic_pain_6plus_months", "known_endometriosis"]
+                    for k in required:
+                        if context.get(k) in [None, "unknown"]:
+                            green_blocked = True
+                            green_missing.add(k)
+                elif rule.id == "FERT-001":
+                    required = ["trying_to_conceive", "age", "trying_duration_months", "unable_to_have_penetrative_intercourse"]
+                    for k in required:
+                        if context.get(k) in [None, "unknown"]:
+                            green_blocked = True
+                            green_missing.add(k)
+
+            if green_blocked:
                 return self._build_result(
                     status=TriageStatus.NEED_MORE_INFO,
                     highest_level=UrgencyLevel.NONE,
                     matching_rules=[],
                     effective_levels={},
-                    missing_inputs=missing_inputs_set or {"cycle_length_days"},
+                    missing_inputs=green_missing or missing_inputs_set or {"cycle_length_days"},
                     evaluated_gates=evaluated_gates,
                     pending_decisions=pending_decisions,
                     deferred_pathways=deferred_pathways,
                     candidate_rules_matched=candidate_rules_matched,
+                    proposed_mappings_matched=proposed_mappings_matched,
                 )
 
         # If a higher urgency rule matched (e.g. Amber or Yellow), but gating was missing
@@ -352,6 +474,7 @@ class TriageEngine:
                     pending_decisions=pending_decisions,
                     deferred_pathways=deferred_pathways,
                     candidate_rules_matched=candidate_rules_matched,
+                    proposed_mappings_matched=proposed_mappings_matched,
                 )
 
         return self._build_result(
@@ -364,6 +487,7 @@ class TriageEngine:
             pending_decisions=pending_decisions,
             deferred_pathways=deferred_pathways,
             candidate_rules_matched=candidate_rules_matched,
+            proposed_mappings_matched=proposed_mappings_matched,
         )
 
     def _build_result(
@@ -377,6 +501,7 @@ class TriageEngine:
         pending_decisions: List[str],
         deferred_pathways: List[Dict[str, Any]],
         candidate_rules_matched: List[str],
+        proposed_mappings_matched: Optional[List[str]] = None,
     ) -> TriageResult:
         reasons: List[ReasonItem] = []
         doctor_suggest_set: Set[str] = set()
@@ -443,6 +568,7 @@ class TriageEngine:
                 pending_clinical_decisions=sorted(list(set(pending_decisions))),
                 deferred_pathways=deferred_pathways,
                 candidate_rules_matched=candidate_rules_matched,
+                proposed_mappings_matched=proposed_mappings_matched or [],
             ),
         )
 

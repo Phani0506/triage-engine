@@ -247,9 +247,138 @@ class GateEvaluator:
 
         return "unknown", "D14: Systemic infection severity status unknown."
 
+    @staticmethod
+    def evaluate_d9(patient: Dict[str, Any]) -> Tuple[Any, str]:
+        """
+        D9: tubal_risk_history (P69 PID, P70 ectopic, P71 pelvic/tubal surgery).
+        """
+        p69 = patient.get("prior_pid")
+        p70 = patient.get("prior_ectopic_pregnancy")
+        p71 = patient.get("prior_tubal_or_pelvic_surgery")
+
+        if p69 == "yes" or p70 == "yes" or p71 == "yes":
+            risks = []
+            if p69 == "yes":
+                risks.append("prior PID")
+            if p70 == "yes":
+                risks.append("prior ectopic pregnancy")
+            if p71 == "yes":
+                risks.append("prior pelvic/tubal surgery")
+            return True, f"D9: Tubal risk history present ({', '.join(risks)})."
+
+        if p69 == "no" and p70 == "no" and p71 == "no":
+            return False, "D9: No tubal risk history reported."
+
+        return "unknown", "D9: Tubal risk history unknown."
+
+    @staticmethod
+    def evaluate_d12(patient: Dict[str, Any], d7: Any, d5: Any, d1: Any) -> Tuple[Any, str]:
+        """
+        D12: pcos_ovulatory_dysfunction_pattern.
+        True if (cycle_length < 21 OR > 35 OR cycles_per_year < 8 OR days_since_last_period > 90)
+        with D7 == True (gynecological age >= 3 yrs), D5 == False (no hormonal interference), D1 == True (pregnancy excluded).
+        """
+        if d7 is False or d5 is True or d1 is False:
+            return False, "D12: Ovulatory dysfunction pattern excluded or not assessable due to pregnancy, hormonal interference, or gynecological immaturity."
+
+        p36 = patient.get("cycle_length_days")
+        p37 = patient.get("cycles_per_year")
+        p35 = patient.get("days_since_last_period")
+
+        is_irregular = False
+
+        try:
+            if p36 not in [None, "unknown"] and (float(p36) < 21 or float(p36) > 35):
+                is_irregular = True
+        except (ValueError, TypeError):
+            pass
+
+        try:
+            if p37 not in [None, "unknown"] and float(p37) < 8:
+                is_irregular = True
+        except (ValueError, TypeError):
+            pass
+
+        try:
+            if p35 not in [None, "unknown"] and float(p35) > 90:
+                is_irregular = True
+        except (ValueError, TypeError):
+            pass
+
+        if is_irregular:
+            if d7 is True and d5 is False and d1 is True:
+                return True, "D12: Ovulatory dysfunction pattern confirmed (irregular cycle length, oligomenorrhea, or secondary amenorrhea in adult gynecological age without contraception/pregnancy)."
+            return "unknown", "D12: Cycle irregularity reported but gating parameters (pregnancy, hormonal interference, or menarche age) are incomplete."
+
+        try:
+            if p36 not in [None, "unknown"]:
+                val36 = float(p36)
+                if 21 <= val36 <= 35:
+                    val37_ok = True
+                    if p37 not in [None, "unknown"]:
+                        val37_ok = (float(p37) >= 8)
+                    val35_ok = True
+                    if p35 not in [None, "unknown"]:
+                        val35_ok = (float(p35) <= 90)
+
+                    if val37_ok and val35_ok:
+                        return False, "D12: Cycle length is regular (21-35 days) with normal annual frequency."
+        except (ValueError, TypeError):
+            pass
+
+        return "unknown", "D12: Cycle history insufficient to determine ovulatory regularity."
+
+    @staticmethod
+    def evaluate_d13(patient: Dict[str, Any]) -> Tuple[Any, str]:
+        """
+        D13: endometriosis_suspicion_signal.
+        True if ANY ONE of P58, P61, P62, P63, P64 is yes.
+        """
+        p58 = patient.get("period_pain_affects_daily_life")
+        p61 = patient.get("deep_dyspareunia")
+        p62 = patient.get("cyclical_bowel_symptoms")
+        p63 = patient.get("cyclical_urinary_symptoms")
+        p64 = patient.get("chronic_pelvic_pain_6plus_months")
+
+        signals = [p58, p61, p62, p63, p64]
+        if any(s == "yes" for s in signals):
+            positive = []
+            if p58 == "yes":
+                positive.append("disabling period pain")
+            if p61 == "yes":
+                positive.append("deep dyspareunia")
+            if p62 == "yes":
+                positive.append("cyclical bowel symptoms")
+            if p63 == "yes":
+                positive.append("cyclical urinary symptoms")
+            if p64 == "yes":
+                positive.append("chronic pelvic pain >= 6 months")
+            return True, f"D13: Endometriosis suspicion signal present ({', '.join(positive)})."
+
+        if all(s == "no" for s in signals):
+            return False, "D13: No cardinal endometriosis suspicion symptoms reported."
+
+        return "unknown", "D13: Endometriosis symptoms incomplete."
+
+    @staticmethod
+    def evaluate_endo_symptom_count_ge_2(patient: Dict[str, Any]) -> Tuple[Any, str]:
+        """Proposed 2-of-4 endometriosis symptom combination (ENDO-008, DEC-07)."""
+        p58 = patient.get("period_pain_affects_daily_life")
+        p61 = patient.get("deep_dyspareunia")
+        p62 = patient.get("cyclical_bowel_symptoms")
+        p63 = patient.get("cyclical_urinary_symptoms")
+        signals = [p58, p61, p62, p63]
+        yes_count = sum(1 for s in signals if s == "yes")
+        unk_count = sum(1 for s in signals if s in [None, "unknown"])
+        if yes_count >= 2:
+            return True, f"ENDO-008 proposed mapping matched ({yes_count} of 4 symptoms present)."
+        if yes_count + unk_count < 2:
+            return False, "Fewer than 2 endometriosis cluster symptoms present."
+        return "unknown", "Endometriosis cluster symptoms incomplete."
+
     @classmethod
     def evaluate_all(cls, patient: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, str]]:
-        """Evaluates all Day 3 derived variables and returns (values_dict, explanations_dict)."""
+        """Evaluates all derived variables and gates and returns (values_dict, explanations_dict)."""
         derived: Dict[str, Any] = {}
         explanations: Dict[str, str] = {}
 
@@ -260,6 +389,7 @@ class GateEvaluator:
         d1, exp1 = cls.evaluate_d1_gate_001(patient)
         derived["pregnancy_excluded"] = d1
         derived["D1"] = d1
+        derived["pregnancy_likely"] = False if d1 is True else (True if d1 is False else "unknown")
         explanations["GATE-001"] = exp1
 
         d2, exp2 = cls.evaluate_d2_gate_002(patient)
@@ -280,6 +410,7 @@ class GateEvaluator:
         d5, exp5 = cls.evaluate_d5(patient)
         derived["hormonal_cycle_interference"] = d5
         derived["D5"] = d5
+        derived["hormonal_contraception_active"] = d5
         explanations["D5"] = exp5
 
         d6, exp6 = cls.evaluate_d6_gate_004(patient)
@@ -297,10 +428,29 @@ class GateEvaluator:
         derived["D8"] = d8
         explanations["GATE-006"] = exp8
 
+        d9, exp9 = cls.evaluate_d9(patient)
+        derived["tubal_risk_history"] = d9
+        derived["D9"] = d9
+        explanations["D9"] = exp9
+
         d11, exp11 = cls.evaluate_d11(patient)
         derived["reported_hemodynamic_instability"] = d11
         derived["D11"] = d11
         explanations["D11"] = exp11
+
+        d12, exp12 = cls.evaluate_d12(patient, d7, d5, d1)
+        derived["pcos_ovulatory_dysfunction_pattern"] = d12
+        derived["D12"] = d12
+        explanations["D12"] = exp12
+
+        d13, exp13 = cls.evaluate_d13(patient)
+        derived["endometriosis_suspicion_signal"] = d13
+        derived["D13"] = d13
+        explanations["D13"] = exp13
+
+        endo_2of4, exp_endo_2of4 = cls.evaluate_endo_symptom_count_ge_2(patient)
+        derived["endometriosis_symptom_count_ge_2"] = endo_2of4
+        explanations["ENDO_2OF4"] = exp_endo_2of4
 
         d14, exp14 = cls.evaluate_d14(patient)
         derived["pelvic_infection_severity_marker"] = d14

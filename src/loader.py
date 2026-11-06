@@ -59,7 +59,16 @@ class SchemaRegistry:
             or field_name in self.derived_variables_by_id
         )
 
+    FIELD_ALIASES = {
+        "rapid_virilization": "rapid_virilization_signs",
+        "hirsutism_excessive_hair": "excess_facial_or_body_hair",
+        "moderate_severe_cystic_acne": "severe_or_persistent_acne",
+        "male_pattern_alopecia": "scalp_hair_thinning",
+        "significant_recent_weight_loss_or_intensive_exercise": "significant_weight_loss_or_heavy_training",
+    }
+
     def get_canonical_name(self, key: str) -> str:
+        key = self.FIELD_ALIASES.get(key, key)
         if key in self.patient_inputs_by_id:
             return self.patient_inputs_by_id[key]["name"]
         if key in self.derived_variables_by_id:
@@ -110,6 +119,11 @@ class SchemaRegistry:
                 p_id = meta.get("id")
                 if p_id and p_id not in normalized:
                     normalized[p_id] = "unknown"
+
+        # Populate known aliases so legacy/pathway alias references match canonical values
+        for alias, canonical in self.FIELD_ALIASES.items():
+            if canonical in normalized and alias not in normalized:
+                normalized[alias] = normalized[canonical]
 
         return normalized
 
@@ -198,6 +212,7 @@ def load_rules(rules_path: Optional[pathlib.Path] = None, schema: Optional[Schem
             safety_net=item.get("safety_net", []),
             conditional_escalation=escalation,
             is_candidate_rule=item.get("is_candidate_rule", False),
+            is_proposed_mapping=item.get("is_proposed_mapping", False),
             pending_clinical_decision=item.get("pending_clinical_decision"),
             proposed_levels=item.get("proposed_levels"),
             source=source,
@@ -230,6 +245,8 @@ def load_pathways(pathways_path: Optional[pathlib.Path] = None) -> List[Pathway]
                 if_unknown=s.get("if_unknown"),
                 deferred_pathway=s.get("deferred_pathway"),
                 terminal_rule_id=s.get("terminal_rule_id"),
+                terminal_type=s.get("terminal_type"),
+                decision=s.get("decision"),
                 ask_next=s.get("ask_next"),
             )
             steps.append(step)

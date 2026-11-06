@@ -1,0 +1,62 @@
+flowchart TD
+    classDef red fill:#dc2626,stroke:#991b1b,stroke-width:2px,color:#fff;
+    classDef amber fill:#d97706,stroke:#92400e,stroke-width:2px,color:#fff;
+    classDef yellow fill:#ca8a04,stroke:#854d0e,stroke-width:2px,color:#fff;
+    classDef green fill:#16a34a,stroke:#166534,stroke-width:2px,color:#fff;
+    classDef grey fill:#475569,stroke:#1e293b,stroke-width:2px,color:#fff;
+    classDef decision fill:#f8fafc,stroke:#334155,stroke-width:2px,color:#0f172a;
+
+    START(["Patient Trying to Conceive or History of Pregnancy Loss"]):::decision
+    S1{"S1: Recurrent Pregnancy Loss?<br/>(>= 2 miscarriages OR second-trimester loss)"}:::decision
+    S2{"S2: Tubal Risk Factor History?<br/>(PID, ectopic, or tubal/pelvic surgery - D9)"}:::decision
+    S2B{"S2B: Inability to Have Penetrative Intercourse?<br/>(Vaginismus, severe dyspareunia)"}:::decision
+    S2C{"S2C: Concurrent Endometriosis Suspicion?<br/>(Disabling pain, deep dyspareunia - D13)"}:::decision
+    S3{"S3: Ovulatory Dysfunction / Irregular Cycles?<br/>(Oligomenorrhea or amenorrhea - D12)"}:::decision
+    S4{"S4: Age < 35 AND Trying >= 12 Months?<br/>(Standard Infertility Investigation Threshold)"}:::decision
+    S4B{"S4B: Age >= 35 AND Trying >= 6 Months?<br/>(ASRM Earlier Fertility Evaluation Threshold)"}:::decision
+    S4C{"S4C: Age 35 AND Trying < 6 Months?<br/>(Pending Clinical Governance Decision DEC-09)"}:::decision
+    S4D{"S4D: Age 36-40 AND Trying < 6 Months?<br/>(NICE NG257 Earlier Consultation Option)"}:::decision
+    S5{"S5: Age < 35, Trying < 12 Months, All Risk Factors Negative?"}:::decision
+
+    T_FERT7["FERT-007 (Clinic Visit / Amber)<br/>Recurrent Miscarriage Panel (DEC-10)"]:::amber
+    T_FERT6["FERT-006 (Clinic Visit / Amber)<br/>Tubal Factor Evaluation & Patency"]:::amber
+    T_FERT8["FERT-008 (Clinic Visit / Amber)<br/>Specialist Coital / Pelvic Assessment"]:::amber
+    T_ENDO6["ENDO-006 (Clinic Visit / Amber)<br/>Concurrent Endometriosis & Fertility Review"]:::amber
+    T_FERT5["FERT-005 (Teleconsultation / Yellow)<br/>Ovulatory Disorder / Induction Assessment"]:::yellow
+    T_FERT2["FERT-002 (Teleconsultation / Yellow)<br/>Formal Infertility Workup (Age <35, >=12m)"]:::yellow
+    T_FERT3["FERT-003 (Teleconsultation / Yellow)<br/>Earlier Fertility Workup (Age >=35, >=6m)"]:::yellow
+    T_AGE35["PATH-FERT-01-TERM-AGE35 (Pending Decision)<br/>No Auto-Yellow/Green; DEC-09 Required"]:::grey
+    T_FERT4["FERT-004 (Teleconsultation / Yellow)<br/>Earlier Specialist Consultation (Age 36-40, Proposed)"]:::yellow
+    T_FERT1["FERT-001 (Self-Care / Green)<br/>Normal Conception Timeline & Preconception Care"]:::green
+    T_MORE["Need More Information<br/>(Unknown Never Auto-Escalated - REV-2)"]:::grey
+
+    START --> S1
+    S1 -- Yes --> T_FERT7
+    S1 -- No --> S2
+    S1 -- Unknown --> T_MORE
+    S2 -- Yes --> T_FERT6
+    S2 -- No --> S2B
+    S2 -- Unknown --> T_MORE
+    S2B -- Yes --> T_FERT8
+    S2B -- No --> S2C
+    S2B -- Unknown --> T_MORE
+    S2C -- Yes --> T_ENDO6
+    S2C -- No --> S3
+    S2C -- Unknown --> T_MORE
+    S3 -- Yes --> T_FERT5
+    S3 -- No --> S4
+    S3 -- Unknown --> T_MORE
+    S4 -- Yes --> T_FERT2
+    S4 -- No --> S4B
+    S4 -- Unknown --> T_MORE
+    S4B -- Yes --> T_FERT3
+    S4B -- No --> S4C
+    S4B -- Unknown --> T_MORE
+    S4C -- Yes --> T_AGE35
+    S4C -- No --> S4D
+    S4C -- Unknown --> T_MORE
+    S4D -- Yes --> T_FERT4
+    S4D -- No --> S5
+    S4D -- Unknown --> T_MORE
+    S5 -- Confirmed Normal --> T_FERT1
+    S5 -- Missing / Incomplete --> T_MORE

@@ -120,7 +120,7 @@ class PathwayRunner:
                     notes=f"Deferred to {target_path}.",
                 )
 
-            # Check for explicit candidate terminals (e.g. single-cycle IMB)
+            # Check for explicit candidate terminals (e.g. single-cycle IMB, Age 35 DEC-09)
             if target == "PATH-HMB-01-TERM-IMB1":
                 return PathwayTraversalResult(
                     pathway_id=pathway.id,
@@ -128,6 +128,16 @@ class PathwayRunner:
                     pending_decision="DISC-IMB1",
                     special_terminal_id="PATH-HMB-01-TERM-IMB1",
                     notes="Isolated single-cycle intermenstrual spotting without heavy flow; clinical mapping pending doctor review.",
+                )
+
+            if target == "PATH-FERT-01-TERM-AGE35":
+                decision_id = getattr(step, "decision", None) or "DEC-09"
+                return PathwayTraversalResult(
+                    pathway_id=pathway.id,
+                    status=TriageStatus.CLINICAL_DECISION_REQUIRED,
+                    pending_decision=decision_id,
+                    special_terminal_id=target,
+                    notes=f"Age 35 trying < 6 months requires clinical governance policy selection ({decision_id}).",
                 )
 
             # Check if target is another step in this pathway

@@ -1,0 +1,52 @@
+flowchart TD
+    classDef red fill:#dc2626,stroke:#991b1b,stroke-width:2px,color:#fff;
+    classDef amber fill:#d97706,stroke:#92400e,stroke-width:2px,color:#fff;
+    classDef yellow fill:#ca8a04,stroke:#854d0e,stroke-width:2px,color:#fff;
+    classDef green fill:#16a34a,stroke:#166534,stroke-width:2px,color:#fff;
+    classDef grey fill:#475569,stroke:#1e293b,stroke-width:2px,color:#fff;
+    classDef decision fill:#f8fafc,stroke:#334155,stroke-width:2px,color:#0f172a;
+
+    START(["Patient Presents with Pelvic Pain or Endometriosis Symptoms"]):::decision
+    S1{"S1: Chronic Pelvic Pain >= 6 Months<br/>OR Palpable Pelvic Mass?"}:::decision
+    S2{"S2: Prior Endometriosis Medical Treatment Failed?"}:::decision
+    S3{"S3: Endometriosis Symptoms with Concurrent Subfertility?"}:::decision
+    S4{"S4: Proposed Multi-Symptom Cluster?<br/>(>= 2 of 4 cardinal symptoms - DEC-07)"}:::decision
+    S5{"S5: Deep Dyspareunia OR Cyclical Bowel / Bladder Symptoms?"}:::decision
+    S6{"S6: Severe Cyclical Dysmenorrhea Affecting Daily Life?"}:::decision
+    S7{"S7: Known Endometriosis Diagnosis for Routine Follow-up?"}:::decision
+    S8{"S8: Normal Menses with All Endometriosis Symptoms Absent?"}:::decision
+
+    T_ENDO4["ENDO-004 (Clinic Visit / Amber)<br/>Chronic Pelvic Pain / Mass Evaluation"]:::amber
+    T_ENDO5["ENDO-005 (Clinic Visit / Amber)<br/>Specialist Referral (Failed First-line Therapy)"]:::amber
+    T_ENDO6["ENDO-006 (Clinic Visit / Amber)<br/>Specialist Infertility / Endometriosis Workup"]:::amber
+    T_ENDO8["ENDO-008 (Proposed Mapping / DEC-07)<br/>Multi-symptom Presentation (Doctor Approval Required)"]:::grey
+    T_ENDO3["ENDO-003 (Teleconsultation / Yellow)<br/>Deep Dyspareunia / Cyclical Extragenital Pain"]:::yellow
+    T_ENDO2["ENDO-002 (Teleconsultation / Yellow)<br/>Severe Cyclical Dysmenorrhea"]:::yellow
+    T_ENDO7["ENDO-007 (Teleconsultation / Yellow)<br/>Confirmed Endometriosis Routine Care"]:::yellow
+    T_ENDO1["ENDO-001 (Self-Care / Green)<br/>Normal Menses, Pain Free"]:::green
+    T_MORE["Need More Information<br/>(Unknown Never Auto-Escalated - REV-2)"]:::grey
+
+    START --> S1
+    S1 -- Yes --> T_ENDO4
+    S1 -- No --> S2
+    S1 -- Unknown --> T_MORE
+    S2 -- Yes --> T_ENDO5
+    S2 -- No --> S3
+    S2 -- Unknown --> T_MORE
+    S3 -- Yes --> T_ENDO6
+    S3 -- No --> S4
+    S3 -- Unknown --> T_MORE
+    S4 -- Yes (if approved) --> T_ENDO8
+    S4 -- No / Policy Pending --> S5
+    S4 -- Unknown --> T_MORE
+    S5 -- Yes --> T_ENDO3
+    S5 -- No --> S6
+    S5 -- Unknown --> T_MORE
+    S6 -- Yes --> T_ENDO2
+    S6 -- No --> S7
+    S6 -- Unknown --> T_MORE
+    S7 -- Yes --> T_ENDO7
+    S7 -- No --> S8
+    S7 -- Unknown --> T_MORE
+    S8 -- All Negative Confirmed --> T_ENDO1
+    S8 -- Missing / Incomplete --> T_MORE

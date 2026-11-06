@@ -1,1071 +1,1982 @@
-# ==============================================================================
-# Women's Health Clinical Risk Triage Engine - Rule Definitions (v0.1 Foundation)
-# ------------------------------------------------------------------------------
-# Day 3 Scope: 29 Baseline Entries (8 Red Flags, 7 Gates, 14 Irregular Periods)
-#              + 2 Candidate Gap Rules (RF-009, EP-001, Inactive by Default)
-# ==============================================================================
-
-# ------------------------------------------------------------------------------
-# 1. RED FLAGS (RF-001 to RF-008, plus candidate RF-009, EP-001)
-# ------------------------------------------------------------------------------
-
 - id: RF-001
   domain: red_flags
   name: Suspected ectopic pregnancy (acute severe pain)
   when:
     all:
-      - field: pregnancy_excluded
-        op: "in"
-        value: [false, "unknown"]
-      - field: acute_severe_pelvic_pain
-        op: "=="
-        value: "yes"
+    - field: pregnancy_excluded
+      op: in
+      value:
+      - false
+      - unknown
+    - field: acute_severe_pelvic_pain
+      op: ==
+      value: 'yes'
   level: emergency
   needs_physical_exam: true
-  physical_exam_reason: "Immediate hemodynamic evaluation, transvaginal ultrasound, and surgical assessment to exclude ruptured ectopic pregnancy."
-  reason: "Sudden, severe, or unbearable lower belly/pelvic pain when pregnancy is not ruled out."
-  advice: "Please go to the nearest hospital emergency department (A&E) immediately. Severe pelvic pain when pregnancy is possible can be a sign of an ectopic pregnancy."
+  physical_exam_reason: Immediate hemodynamic evaluation, transvaginal ultrasound,
+    and surgical assessment to exclude ruptured ectopic pregnancy.
+  reason: Sudden, severe, or unbearable lower belly/pelvic pain when pregnancy is
+    not ruled out.
+  advice: Please go to the nearest hospital emergency department (A&E) immediately.
+    Severe pelvic pain when pregnancy is possible can be a sign of an ectopic pregnancy.
   doctor_may_suggest:
-    - "emergency transvaginal ultrasound"
-    - "quantitative serum beta-hCG"
-    - "full blood count and blood type/cross-match"
+  - emergency transvaginal ultrasound
+  - quantitative serum beta-hCG
+  - full blood count and blood type/cross-match
   safety_net:
-    - "severe dizziness or collapsing"
-    - "shoulder-tip pain"
-    - "heavy vaginal bleeding"
+  - severe dizziness or collapsing
+  - shoulder-tip pain
+  - heavy vaginal bleeding
   source:
-    name: "NICE NG126"
-    url: "https://www.nice.org.uk/guidance/ng126/chapter/Recommendations#assessment-in-specialist-services"
-    section: "Section 1.3 Rec 1.3.1 & Section 1.2 Rec 1.2.1"
-    number_checked: "Qualitative: severe acute pain + pregnancy not excluded"
-    date: "April 2019; updated 17 June 2026"
+    name: NICE NG126
+    url: https://www.nice.org.uk/guidance/ng126/chapter/Recommendations#assessment-in-specialist-services
+    section: Section 1.3 Rec 1.3.1 & Section 1.2 Rec 1.2.1
+    number_checked: 'Qualitative: severe acute pain + pregnancy not excluded'
+    date: April 2019; updated 17 June 2026
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: RF-002
   domain: red_flags
   name: Suspected ectopic pregnancy (shoulder-tip pain)
   when:
     all:
-      - field: pregnancy_excluded
-        op: "in"
-        value: [false, "unknown"]
-      - field: shoulder_tip_pain
-        op: "=="
-        value: "yes"
-      - any:
-          - field: pelvic_pain_any
-            op: "=="
-            value: "yes"
-          - field: vaginal_bleeding_now
-            op: "=="
-            value: "yes"
+    - field: pregnancy_excluded
+      op: in
+      value:
+      - false
+      - unknown
+    - field: shoulder_tip_pain
+      op: ==
+      value: 'yes'
+    - any:
+      - field: pelvic_pain_any
+        op: ==
+        value: 'yes'
+      - field: vaginal_bleeding_now
+        op: ==
+        value: 'yes'
   level: emergency
   needs_physical_exam: true
-  physical_exam_reason: "Shoulder-tip pain indicates diaphragmatic irritation from internal intraperitoneal bleeding secondary to ruptured ectopic pregnancy."
-  reason: "Unexplained shoulder-tip pain alongside pelvic pain or vaginal bleeding when pregnancy is not ruled out."
-  advice: "Please go to the nearest hospital emergency department immediately. Shoulder-tip pain with pelvic symptoms can indicate internal bleeding from an ectopic pregnancy."
+  physical_exam_reason: Shoulder-tip pain indicates diaphragmatic irritation from
+    internal intraperitoneal bleeding secondary to ruptured ectopic pregnancy.
+  reason: Unexplained shoulder-tip pain alongside pelvic pain or vaginal bleeding
+    when pregnancy is not ruled out.
+  advice: Please go to the nearest hospital emergency department immediately. Shoulder-tip
+    pain with pelvic symptoms can indicate internal bleeding from an ectopic pregnancy.
   doctor_may_suggest:
-    - "emergency transvaginal ultrasound"
-    - "quantitative serum beta-hCG"
-    - "immediate surgical evaluation"
+  - emergency transvaginal ultrasound
+  - quantitative serum beta-hCG
+  - immediate surgical evaluation
   source:
-    name: "NICE NG126 / RCOG"
-    url: "https://www.rcog.org.uk/for-the-public/browse-our-patient-information/ectopic-pregnancy/"
-    section: "NICE NG126 Section 1.2 Rec 1.2.2; RCOG Patient Information"
-    number_checked: "Qualitative: shoulder-tip pain with bleeding or pain"
-    date: "Patient info updated 2024"
+    name: NICE NG126 / RCOG
+    url: https://www.rcog.org.uk/for-the-public/browse-our-patient-information/ectopic-pregnancy/
+    section: NICE NG126 Section 1.2 Rec 1.2.2; RCOG Patient Information
+    number_checked: 'Qualitative: shoulder-tip pain with bleeding or pain'
+    date: Patient info updated 2024
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: RF-003
   domain: red_flags
   name: Acute heavy bleeding with hemodynamic instability
   when:
     all:
-      - field: soaking_pad_hourly_2plus_hours
-        op: "=="
-        value: "yes"
-      - field: reported_hemodynamic_instability
-        op: "=="
-        value: true
+    - field: soaking_pad_hourly_2plus_hours
+      op: ==
+      value: 'yes'
+    - field: reported_hemodynamic_instability
+      op: ==
+      value: true
   level: emergency
   needs_physical_exam: true
-  physical_exam_reason: "Severe blood loss with circulatory compromise requires immediate IV fluid resuscitation and urgent exam."
-  reason: "Bleeding heavily enough to soak through a pad or tampon every hour for 2+ hours, accompanied by fainting, dizziness, or a racing heart at rest."
-  advice: "Please go to the nearest emergency department immediately. Soaking pads hourly with symptoms of dizziness or fainting indicates rapid blood loss requiring urgent treatment."
+  physical_exam_reason: Severe blood loss with circulatory compromise requires immediate
+    IV fluid resuscitation and urgent exam.
+  reason: Bleeding heavily enough to soak through a pad or tampon every hour for 2+
+    hours, accompanied by fainting, dizziness, or a racing heart at rest.
+  advice: Please go to the nearest emergency department immediately. Soaking pads
+    hourly with symptoms of dizziness or fainting indicates rapid blood loss requiring
+    urgent treatment.
   doctor_may_suggest:
-    - "intravenous fluid resuscitation"
-    - "urgent full blood count and cross-match"
-    - "pelvic examination and ultrasound"
+  - intravenous fluid resuscitation
+  - urgent full blood count and cross-match
+  - pelvic examination and ultrasound
   source:
-    name: "ACOG Committee Opinion No. 557 / CDC"
-    url: "https://www.cdc.gov/ncbddd/blooddisorders/women/menorrhagia.html"
-    section: "ACOG CO 557 Initial Evaluation; CDC Menorrhagia Criteria"
-    number_checked: "Soaking >= 1 pad/hr for >= 2 hrs with vital instability (D11)"
-    date: "April 2013, reaffirmed 2023"
+    name: ACOG Committee Opinion No. 557 / CDC
+    url: https://www.cdc.gov/ncbddd/blooddisorders/women/menorrhagia.html
+    section: ACOG CO 557 Initial Evaluation; CDC Menorrhagia Criteria
+    number_checked: Soaking >= 1 pad/hr for >= 2 hrs with vital instability (D11)
+    date: April 2013, reaffirmed 2023
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DEC-01
-
 - id: RF-004
   domain: red_flags
   name: Hemodynamic collapse or syncope with bleeding or pain
   when:
     all:
-      - field: fainting_or_near_fainting
-        op: "=="
-        value: "yes"
-      - any:
-          - field: vaginal_bleeding_now
-            op: "=="
-            value: "yes"
-          - field: pelvic_pain_any
-            op: "=="
-            value: "yes"
-          - field: acute_severe_pelvic_pain
-            op: "=="
-            value: "yes"
-          - field: soaking_pad_hourly_2plus_hours
-            op: "=="
-            value: "yes"
+    - field: fainting_or_near_fainting
+      op: ==
+      value: 'yes'
+    - any:
+      - field: vaginal_bleeding_now
+        op: ==
+        value: 'yes'
+      - field: pelvic_pain_any
+        op: ==
+        value: 'yes'
+      - field: acute_severe_pelvic_pain
+        op: ==
+        value: 'yes'
+      - field: soaking_pad_hourly_2plus_hours
+        op: ==
+        value: 'yes'
   level: emergency
   needs_physical_exam: true
-  physical_exam_reason: "Direct clinical marker of hypovolemic shock, circulatory collapse, or intra-abdominal bleeding."
-  reason: "Fainting, collapse, or near-fainting occurring alongside vaginal bleeding or pelvic pain."
-  advice: "Please seek emergency medical care immediately. Fainting or severe dizziness with bleeding or pelvic pain requires urgent emergency evaluation."
+  physical_exam_reason: Direct clinical marker of hypovolemic shock, circulatory collapse,
+    or intra-abdominal bleeding.
+  reason: Fainting, collapse, or near-fainting occurring alongside vaginal bleeding
+    or pelvic pain.
+  advice: Please seek emergency medical care immediately. Fainting or severe dizziness
+    with bleeding or pelvic pain requires urgent emergency evaluation.
   doctor_may_suggest:
-    - "vital signs and orthostatic blood pressure check"
-    - "intravenous fluid resuscitation"
-    - "emergency ultrasound and hemoglobin check"
+  - vital signs and orthostatic blood pressure check
+  - intravenous fluid resuscitation
+  - emergency ultrasound and hemoglobin check
   source:
-    name: "NICE NG126 / ACOG CO 557"
-    url: "https://cks.nice.org.uk/topics/ectopic-pregnancy/background-information/red-flag-symptoms/"
-    section: "NICE CKS Ectopic Red Flags; NICE NG126 Rec 1.3.1"
-    number_checked: "Qualitative: syncope with bleeding or pain"
-    date: "2023 update"
+    name: NICE NG126 / ACOG CO 557
+    url: https://cks.nice.org.uk/topics/ectopic-pregnancy/background-information/red-flag-symptoms/
+    section: NICE CKS Ectopic Red Flags; NICE NG126 Rec 1.3.1
+    number_checked: 'Qualitative: syncope with bleeding or pain'
+    date: 2023 update
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: RF-005
   domain: red_flags
   name: Severe acute pelvic infection / sepsis risk
   when:
     all:
-      - field: pelvic_pain_any
-        op: "=="
-        value: "yes"
-      - field: pelvic_infection_severity_marker
-        op: "=="
-        value: true
+    - field: pelvic_pain_any
+      op: ==
+      value: 'yes'
+    - field: pelvic_infection_severity_marker
+      op: ==
+      value: true
   level: emergency
   needs_physical_exam: true
-  physical_exam_reason: "Evaluation and parenteral IV antibiotics for severe acute PID with suspected abscess or sepsis."
-  reason: "Pelvic pain accompanied by severe systemic illness, high fever (> 38.5°C), or persistent vomiting."
-  advice: "Please go to the nearest hospital emergency department immediately. Pelvic pain with high fever or severe illness can indicate a severe pelvic infection requiring hospital care."
+  physical_exam_reason: Evaluation and parenteral IV antibiotics for severe acute
+    PID with suspected abscess or sepsis.
+  reason: "Pelvic pain accompanied by severe systemic illness, high fever (> 38.5\xB0\
+    C), or persistent vomiting."
+  advice: Please go to the nearest hospital emergency department immediately. Pelvic
+    pain with high fever or severe illness can indicate a severe pelvic infection
+    requiring hospital care.
   doctor_may_suggest:
-    - "blood cultures and inflammatory markers (CRP, ESR)"
-    - "pelvic ultrasound to rule out tubo-ovarian abscess"
-    - "parenteral intravenous antibiotics"
+  - blood cultures and inflammatory markers (CRP, ESR)
+  - pelvic ultrasound to rule out tubo-ovarian abscess
+  - parenteral intravenous antibiotics
   source:
-    name: "CDC STI Treatment Guidelines / RCOG GTG 32"
-    url: "https://www.cdc.gov/std/treatment-guidelines/pid.htm"
-    section: "CDC PID Hospitalization Criteria; RCOG GTG 32 Sec 5"
-    number_checked: "Fever > 38.5°C (> 101°F) OR severe prostration OR vomiting"
-    date: "2021"
+    name: CDC STI Treatment Guidelines / RCOG GTG 32
+    url: https://www.cdc.gov/std/treatment-guidelines/pid.htm
+    section: CDC PID Hospitalization Criteria; RCOG GTG 32 Sec 5
+    number_checked: "Fever > 38.5\xB0C (> 101\xB0F) OR severe prostration OR vomiting"
+    date: '2021'
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DEC-02
-
 - id: RF-006
   domain: red_flags
   name: Confirmed early pregnancy with bleeding and pain
   when:
     all:
-      - field: pregnancy_test_result
-        op: "=="
-        value: "positive"
-      - field: vaginal_bleeding_now
-        op: "=="
-        value: "yes"
-      - field: pelvic_pain_any
-        op: "=="
-        value: "yes"
-      - field: acute_severe_pelvic_pain
-        op: "!="
-        value: "yes"
-      - field: reported_hemodynamic_instability
-        op: "!="
-        value: true
+    - field: pregnancy_test_result
+      op: ==
+      value: positive
+    - field: vaginal_bleeding_now
+      op: ==
+      value: 'yes'
+    - field: pelvic_pain_any
+      op: ==
+      value: 'yes'
+    - field: acute_severe_pelvic_pain
+      op: '!='
+      value: 'yes'
+    - field: reported_hemodynamic_instability
+      op: '!='
+      value: true
   level: clinic_visit
   proposed_levels:
     primary: clinic_visit
     alternative: emergency
   needs_physical_exam: true
-  physical_exam_reason: "Urgent speculum examination and transvaginal ultrasound within 24 hours to confirm pregnancy location and viability."
-  reason: "Positive pregnancy test with concurrent vaginal bleeding and pelvic pain (without severe collapse)."
-  advice: "Please attend an early pregnancy assessment clinic or hospital for an in-person assessment within 24 hours. A scan is needed to check the location and progress of the pregnancy."
+  physical_exam_reason: Urgent speculum examination and transvaginal ultrasound within
+    24 hours to confirm pregnancy location and viability.
+  reason: Positive pregnancy test with concurrent vaginal bleeding and pelvic pain
+    (without severe collapse).
+  advice: Please attend an early pregnancy assessment clinic or hospital for an in-person
+    assessment within 24 hours. A scan is needed to check the location and progress
+    of the pregnancy.
   doctor_may_suggest:
-    - "transvaginal ultrasound scan"
-    - "repeat serum quantitative beta-hCG in 48 hours"
-    - "speculum examination"
+  - transvaginal ultrasound scan
+  - repeat serum quantitative beta-hCG in 48 hours
+  - speculum examination
   source:
-    name: "NICE NG126"
-    url: "https://www.nice.org.uk/guidance/ng126/chapter/Recommendations#assessment-in-specialist-services"
-    section: "Section 1.1 Rec 1.1.2 & Section 1.3 Rec 1.3.1, 1.3.4"
-    number_checked: "Assessment within 24 hours for stable early pregnancy pain and bleeding"
-    date: "Updated 17 June 2026"
+    name: NICE NG126
+    url: https://www.nice.org.uk/guidance/ng126/chapter/Recommendations#assessment-in-specialist-services
+    section: Section 1.1 Rec 1.1.2 & Section 1.3 Rec 1.3.1, 1.3.4
+    number_checked: Assessment within 24 hours for stable early pregnancy pain and
+      bleeding
+    date: Updated 17 June 2026
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DEC-03
-
 - id: RF-007
   domain: red_flags
   name: Sudden severe pelvic pain with vomiting (ovarian torsion risk)
   when:
     all:
-      - field: acute_severe_pelvic_pain
-        op: "=="
-        value: "yes"
-      - field: sudden_pain_with_vomiting
-        op: "=="
-        value: "yes"
+    - field: acute_severe_pelvic_pain
+      op: ==
+      value: 'yes'
+    - field: sudden_pain_with_vomiting
+      op: ==
+      value: 'yes'
   level: emergency
   needs_physical_exam: true
-  physical_exam_reason: "Urgent Doppler ultrasound and surgical exploration to rule out ovarian/adnexal torsion."
-  reason: "Sudden, severe lower belly pain starting abruptly with nausea or vomiting."
-  advice: "Please go to the nearest emergency department immediately. Sudden severe pelvic pain with vomiting can indicate an ovarian problem requiring urgent surgical review."
+  physical_exam_reason: Urgent Doppler ultrasound and surgical exploration to rule
+    out ovarian/adnexal torsion.
+  reason: Sudden, severe lower belly pain starting abruptly with nausea or vomiting.
+  advice: Please go to the nearest emergency department immediately. Sudden severe
+    pelvic pain with vomiting can indicate an ovarian problem requiring urgent surgical
+    review.
   doctor_may_suggest:
-    - "urgent pelvic Doppler ultrasound"
-    - "emergency gynecological surgical consultation"
-    - "pain relief and intravenous fluids"
+  - urgent pelvic Doppler ultrasound
+  - emergency gynecological surgical consultation
+  - pain relief and intravenous fluids
   source:
-    name: "ACOG CO 783 / RCOG GTG 62"
-    url: "https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2019/08/adnexal-torsion-in-adolescents"
-    section: "ACOG CO 783 Clinical Presentation; RCOG GTG 62 Section 4"
-    number_checked: "Qualitative: severe abrupt pain with nausea or vomiting"
-    date: "August 2019, reaffirmed 2021"
+    name: ACOG CO 783 / RCOG GTG 62
+    url: https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2019/08/adnexal-torsion-in-adolescents
+    section: ACOG CO 783 Clinical Presentation; RCOG GTG 62 Section 4
+    number_checked: 'Qualitative: severe abrupt pain with nausea or vomiting'
+    date: August 2019, reaffirmed 2021
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: RF-008
   domain: red_flags
   name: Secondary postpartum hemorrhage or severe postpartum infection
   when:
     all:
-      - field: postpartum_delivery_timing
-        op: "in"
-        value: ["within_6_weeks", "6_to_12_weeks"]
-      - field: postpartum_heavy_or_increasing_bleeding_or_clots
-        op: "=="
-        value: "yes"
-      - any:
-          - field: reported_hemodynamic_instability
-            op: "=="
-            value: true
-          - field: fever_over_38_5c
-            op: "=="
-            value: "yes"
+    - field: postpartum_delivery_timing
+      op: in
+      value:
+      - within_6_weeks
+      - 6_to_12_weeks
+    - field: postpartum_heavy_or_increasing_bleeding_or_clots
+      op: ==
+      value: 'yes'
+    - any:
+      - field: reported_hemodynamic_instability
+        op: ==
+        value: true
+      - field: fever_over_38_5c
+        op: ==
+        value: 'yes'
   level: emergency
   needs_physical_exam: true
-  physical_exam_reason: "Urgent evaluation for secondary postpartum hemorrhage, retained tissue, or endometritis."
-  reason: "Heavy bleeding or large clots within 12 weeks of childbirth, accompanied by fainting, racing heart, or high fever."
-  advice: "Please go to the nearest maternity emergency department or hospital immediately. Heavy bleeding with fever or dizziness in the weeks after childbirth requires urgent care."
+  physical_exam_reason: Urgent evaluation for secondary postpartum hemorrhage, retained
+    tissue, or endometritis.
+  reason: Heavy bleeding or large clots within 12 weeks of childbirth, accompanied
+    by fainting, racing heart, or high fever.
+  advice: Please go to the nearest maternity emergency department or hospital immediately.
+    Heavy bleeding with fever or dizziness in the weeks after childbirth requires
+    urgent care.
   doctor_may_suggest:
-    - "urgent pelvic ultrasound for retained products of conception"
-    - "intravenous antibiotics and uterotonics"
-    - "full blood count and coagulation profile"
+  - urgent pelvic ultrasound for retained products of conception
+  - intravenous antibiotics and uterotonics
+  - full blood count and coagulation profile
   source:
-    name: "NICE NG194 / RCOG GTG 52"
-    url: "https://www.nice.org.uk/guidance/ng194/chapter/Recommendations#symptoms-and-signs-of-serious-postnatal-conditions"
-    section: "NICE NG194 Section 1.2; RCOG GTG 52 Section 6"
-    number_checked: "Postpartum <= 12 weeks with heavy bleeding/clots and instability or fever"
-    date: "April 2021"
+    name: NICE NG194 / RCOG GTG 52
+    url: https://www.nice.org.uk/guidance/ng194/chapter/Recommendations#symptoms-and-signs-of-serious-postnatal-conditions
+    section: NICE NG194 Section 1.2; RCOG GTG 52 Section 6
+    number_checked: Postpartum <= 12 weeks with heavy bleeding/clots and instability
+      or fever
+    date: April 2021
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DEC-04
-
-# ------------------------------------------------------------------------------
-# Candidate Gap Rules (Inactive by default)
-# ------------------------------------------------------------------------------
-
 - id: RF-009
   domain: red_flags
   name: Acute severe pelvic pain with excluded pregnancy (Acute surgical abdomen)
   when:
     all:
-      - field: pregnancy_excluded
-        op: "=="
-        value: true
-      - field: acute_severe_pelvic_pain
-        op: "=="
-        value: "yes"
+    - field: pregnancy_excluded
+      op: ==
+      value: true
+    - field: acute_severe_pelvic_pain
+      op: ==
+      value: 'yes'
   level: emergency
   is_candidate_rule: true
   needs_physical_exam: true
-  physical_exam_reason: "Emergency surgical evaluation for appendicitis, ruptured cyst, or pelvic peritonitis."
-  reason: "Severe, acute pelvic pain even with pregnancy excluded requires urgent emergency surgical evaluation."
-  advice: "Please go to the nearest hospital emergency department immediately. Sudden severe pelvic pain can be a surgical emergency."
+  physical_exam_reason: Emergency surgical evaluation for appendicitis, ruptured cyst,
+    or pelvic peritonitis.
+  reason: Severe, acute pelvic pain even with pregnancy excluded requires urgent emergency
+    surgical evaluation.
+  advice: Please go to the nearest hospital emergency department immediately. Sudden
+    severe pelvic pain can be a surgical emergency.
   doctor_may_suggest:
-    - "abdominal and pelvic CT or ultrasound"
-    - "surgical consultation"
+  - abdominal and pelvic CT or ultrasound
+  - surgical consultation
   source:
-    name: "NICE NG126 / Surgical Consensus"
-    url: "https://www.nice.org.uk/guidance/ng126"
-    section: "Acute surgical differential"
-    number_checked: "Acute severe pelvic pain with negative pregnancy test"
-    date: "2023"
+    name: NICE NG126 / Surgical Consensus
+    url: https://www.nice.org.uk/guidance/ng126
+    section: Acute surgical differential
+    number_checked: Acute severe pelvic pain with negative pregnancy test
+    date: '2023'
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DEC-08
-
 - id: EP-001
   domain: red_flags
   name: Early pregnancy with painless vaginal bleeding (Threatened miscarriage)
   when:
     all:
-      - field: pregnancy_test_result
-        op: "=="
-        value: "positive"
-      - field: vaginal_bleeding_now
-        op: "=="
-        value: "yes"
-      - field: pelvic_pain_any
-        op: "=="
-        value: "no"
-      - field: reported_hemodynamic_instability
-        op: "=="
-        value: false
+    - field: pregnancy_test_result
+      op: ==
+      value: positive
+    - field: vaginal_bleeding_now
+      op: ==
+      value: 'yes'
+    - field: pelvic_pain_any
+      op: ==
+      value: 'no'
+    - field: reported_hemodynamic_instability
+      op: ==
+      value: false
   level: clinic_visit
   is_candidate_rule: true
   needs_physical_exam: true
-  physical_exam_reason: "Clinical assessment and transvaginal ultrasound within 24 hours to confirm fetal viability."
-  reason: "Positive pregnancy test with painless vaginal bleeding without shock."
-  advice: "Please arrange an in-person assessment at an early pregnancy assessment clinic within 24 hours."
+  physical_exam_reason: Clinical assessment and transvaginal ultrasound within 24
+    hours to confirm fetal viability.
+  reason: Positive pregnancy test with painless vaginal bleeding without shock.
+  advice: Please arrange an in-person assessment at an early pregnancy assessment
+    clinic within 24 hours.
   doctor_may_suggest:
-    - "transvaginal ultrasound scan"
-    - "speculum examination"
+  - transvaginal ultrasound scan
+  - speculum examination
   source:
-    name: "NICE NG126"
-    url: "https://www.nice.org.uk/guidance/ng126/chapter/Recommendations"
-    section: "Section 1.1 Rec 1.1.2 & Section 1.3 Rec 1.3.4"
-    number_checked: "EPAS assessment within 24 hours"
-    date: "Updated 17 June 2026"
+    name: NICE NG126
+    url: https://www.nice.org.uk/guidance/ng126/chapter/Recommendations
+    section: Section 1.1 Rec 1.1.2 & Section 1.3 Rec 1.3.4
+    number_checked: EPAS assessment within 24 hours
+    date: Updated 17 June 2026
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DEC-08
-
-# ------------------------------------------------------------------------------
-# 2. GATES (GATE-001 to GATE-006)
-# ------------------------------------------------------------------------------
-
 - id: GATE-001
   domain: gates
   name: Pregnancy exclusion gate
   when: {}
   level: none
   needs_physical_exam: false
-  reason: "Determines if pregnancy has been reliably excluded before non-pregnancy pathways run."
-  advice: ""
+  reason: Determines if pregnancy has been reliably excluded before non-pregnancy
+    pathways run.
+  advice: ''
   source:
-    name: "NHS / FSRH / NICE CKS"
-    url: "https://www.nhs.uk/pregnancy/trying-for-a-baby/doing-a-pregnancy-test/"
-    section: "NHS Pregnancy Testing Timing; FSRH CEU Statement"
-    number_checked: "Test >= 21 days after last unprotected sex"
-    date: "2024"
+    name: NHS / FSRH / NICE CKS
+    url: https://www.nhs.uk/pregnancy/trying-for-a-baby/doing-a-pregnancy-test/
+    section: NHS Pregnancy Testing Timing; FSRH CEU Statement
+    number_checked: Test >= 21 days after last unprotected sex
+    date: '2024'
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: GATE-002
   domain: gates
   name: Age scope boundary filter (18 to 40 years)
   when: {}
   level: none
   needs_physical_exam: false
-  reason: "Verifies patient age is within target reproductive window (18 to 40 years inclusive)."
-  advice: ""
+  reason: Verifies patient age is within target reproductive window (18 to 40 years
+    inclusive).
+  advice: ''
   source:
-    name: "Task Specification / FIGO"
-    url: "https://www.ijgo.org/article/S0020-7292(18)30282-3/fulltext"
-    section: "Scope Section; FIGO Table 1 footnote"
-    number_checked: "Age 18 to 40 years inclusive"
-    date: "2026"
+    name: Task Specification / FIGO
+    url: https://www.ijgo.org/article/S0020-7292(18)30282-3/fulltext
+    section: Scope Section; FIGO Table 1 footnote
+    number_checked: Age 18 to 40 years inclusive
+    date: '2026'
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: GATE-003A
   domain: gates
   name: PCOS combined oral contraceptive pill (COCP) 3-month washout gate
   when: {}
   level: none
   needs_physical_exam: false
-  reason: "Requires 3-month pill washout before endocrine evaluation for PCOS."
-  advice: ""
+  reason: Requires 3-month pill washout before endocrine evaluation for PCOS.
+  advice: ''
   source:
-    name: "2023 International PCOS Guideline"
-    url: "https://www.monash.edu/medicine/mchri/pcos/guideline"
-    section: "Practice Point 1.2.6 Biochemical hyperandrogenism"
-    number_checked: ">= 3 months withdrawal required"
-    date: "August 2023"
+    name: 2023 International PCOS Guideline
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Practice Point 1.2.6 Biochemical hyperandrogenism
+    number_checked: '>= 3 months withdrawal required'
+    date: August 2023
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: GATE-003B
   domain: gates
   name: Progestin-only contraception bleeding alteration gate
   when: {}
   level: none
   needs_physical_exam: false
-  reason: "Distinguishes contraceptive-induced unscheduled bleeding from idiopathic ovulatory dysfunction."
-  advice: ""
+  reason: Distinguishes contraceptive-induced unscheduled bleeding from idiopathic
+    ovulatory dysfunction.
+  advice: ''
   source:
-    name: "FSRH Guidance"
-    url: "https://www.fsrh.org/standards-and-guidance/documents/ceuguidanceproblematicbleedinghormonalcontraception/"
-    section: "Section 2 Initial assessment"
-    number_checked: "Progestin-only contraceptive use"
-    date: "2015, amended 2020"
+    name: FSRH Guidance
+    url: https://www.fsrh.org/standards-and-guidance/documents/ceuguidanceproblematicbleedinghormonalcontraception/
+    section: Section 2 Initial assessment
+    number_checked: Progestin-only contraceptive use
+    date: 2015, amended 2020
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: GATE-004
   domain: gates
   name: Postpartum and lactational amenorrhea gate (strict LAM < 6 months)
   when: {}
   level: none
   needs_physical_exam: false
-  reason: "Distinguishes formal contraceptive LAM (< 6 months, exclusively breastfeeding, amenorrheic) from extended lactation."
-  advice: ""
+  reason: Distinguishes formal contraceptive LAM (< 6 months, exclusively breastfeeding,
+    amenorrheic) from extended lactation.
+  advice: ''
   source:
-    name: "WHO MEC / FSRH Guidance"
-    url: "https://www.who.int/publications/i/item/9789240053779"
-    section: "WHO MEC LAM Criteria; FSRH Contraception After Pregnancy"
-    number_checked: "Infant < 6 months + exclusive breastfeeding + amenorrheic"
-    date: "2023"
+    name: WHO MEC / FSRH Guidance
+    url: https://www.who.int/publications/i/item/9789240053779
+    section: WHO MEC LAM Criteria; FSRH Contraception After Pregnancy
+    number_checked: Infant < 6 months + exclusive breastfeeding + amenorrheic
+    date: '2023'
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: GATE-005
   domain: gates
   name: Gynecological maturity gate (>= 3 years post-menarche)
   when: {}
   level: none
   needs_physical_exam: false
-  reason: "Verifies at least 3 years have elapsed since menarche before applying adult cycle regularity criteria."
-  advice: ""
+  reason: Verifies at least 3 years have elapsed since menarche before applying adult
+    cycle regularity criteria.
+  advice: ''
   source:
-    name: "2023 International PCOS Guideline"
-    url: "https://www.monash.edu/medicine/mchri/pcos/guideline"
-    section: "Recommendation 1.1.1 Irregular cycles"
-    number_checked: ">= 3 years post-menarche for adult parameters"
-    date: "August 2023"
+    name: 2023 International PCOS Guideline
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Recommendation 1.1.1 Irregular cycles
+    number_checked: '>= 3 years post-menarche for adult parameters'
+    date: August 2023
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: GATE-006
   domain: gates
   name: STI risk-factor context flag
   when: {}
   level: none
   needs_physical_exam: false
-  reason: "Records partner history context without automatically escalating asymptomatic younger women."
-  advice: ""
+  reason: Records partner history context without automatically escalating asymptomatic
+    younger women.
+  advice: ''
   source:
-    name: "CDC STI Treatment Guidelines"
-    url: "https://www.cdc.gov/std/treatment-guidelines/pid.htm"
-    section: "Chlamydia and Gonorrhea Screening"
-    number_checked: "New/multiple partner in last 12 months"
-    date: "2021"
+    name: CDC STI Treatment Guidelines
+    url: https://www.cdc.gov/std/treatment-guidelines/pid.htm
+    section: Chlamydia and Gonorrhea Screening
+    number_checked: New/multiple partner in last 12 months
+    date: '2021'
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DEC-11
-
-# ------------------------------------------------------------------------------
-# 3. IRREGULAR PERIODS (IRR-001 to IRR-013, including IRR-007A)
-# ------------------------------------------------------------------------------
-
 - id: IRR-001
   domain: irregular_periods
   name: Normal physiological menstrual cycle parameters
   when:
     all:
-      - field: never_had_period
-        op: "=="
-        value: "no"
-      - field: days_since_last_period
-        op: "<="
-        value: 38
-      - field: cycle_length_days
-        op: ">="
-        value: 24
-      - field: cycle_length_days
-        op: "<="
-        value: 38
-      - field: bleeding_duration_days
-        op: "<="
-        value: 8
-      - field: self_reported_heavy_flow
-        op: "=="
-        value: "no"
-      - field: intermenstrual_bleeding_cycles
-        op: "=="
-        value: 0
-      - field: postcoital_bleeding
-        op: "=="
-        value: "no"
-      - field: persistent_pelvic_pain_or_pressure
-        op: "=="
-        value: "no"
-      - field: palpable_pelvic_lump
-        op: "=="
-        value: "no"
-      - field: period_pain_affects_daily_life
-        op: "=="
-        value: "no"
-      - any:
-          - all:
-              - field: age
-                op: "<="
-                value: 25
-              - field: cycle_variation_days
-                op: "<="
-                value: 9
-          - all:
-              - field: age
-                op: ">="
-                value: 26
-              - field: cycle_variation_days
-                op: "<="
-                value: 7
+    - field: never_had_period
+      op: ==
+      value: 'no'
+    - field: days_since_last_period
+      op: <=
+      value: 38
+    - field: cycle_length_days
+      op: '>='
+      value: 24
+    - field: cycle_length_days
+      op: <=
+      value: 38
+    - field: bleeding_duration_days
+      op: <=
+      value: 8
+    - field: self_reported_heavy_flow
+      op: ==
+      value: 'no'
+    - field: intermenstrual_bleeding_cycles
+      op: ==
+      value: 0
+    - field: postcoital_bleeding
+      op: ==
+      value: 'no'
+    - field: persistent_pelvic_pain_or_pressure
+      op: ==
+      value: 'no'
+    - field: palpable_pelvic_lump
+      op: ==
+      value: 'no'
+    - field: period_pain_affects_daily_life
+      op: ==
+      value: 'no'
+    - any:
+      - all:
+        - field: age
+          op: <=
+          value: 25
+        - field: cycle_variation_days
+          op: <=
+          value: 9
+      - all:
+        - field: age
+          op: '>='
+          value: 26
+        - field: cycle_variation_days
+          op: <=
+          value: 7
   level: self_care
   needs_physical_exam: false
-  reason: "Menstrual cycle length, variation, and duration are within normal biological ranges with no abnormal bleeding or pain flags."
-  advice: "Your cycle parameters are within normal physiological ranges. Continue tracking your cycles. If your cycle pattern changes or you develop symptoms, speak with a healthcare provider."
+  reason: Menstrual cycle length, variation, and duration are within normal biological
+    ranges with no abnormal bleeding or pain flags.
+  advice: Your cycle parameters are within normal physiological ranges. Continue tracking
+    your cycles. If your cycle pattern changes or you develop symptoms, speak with
+    a healthcare provider.
   safety_net:
-    - "bleeding that soaks through a pad or tampon every hour for 2 hours in a row"
-    - "severe lower belly pain that does not settle"
-    - "fainting or feeling very dizzy"
-    - "bleeding after sexual intercourse"
+  - bleeding that soaks through a pad or tampon every hour for 2 hours in a row
+  - severe lower belly pain that does not settle
+  - fainting or feeling very dizzy
+  - bleeding after sexual intercourse
   source:
-    name: "FIGO 2018 System 1 (Munro et al.)"
-    url: "https://www.ijgo.org/article/S0020-7292(18)30282-3/fulltext"
-    section: "Table 1 FIGO parameters for normal menstrual cycle"
-    number_checked: "Frequency 24-38 days, variation <= 7-9 days, duration <= 8 days"
-    date: "2018"
+    name: FIGO 2018 System 1 (Munro et al.)
+    url: https://www.ijgo.org/article/S0020-7292(18)30282-3/fulltext
+    section: Table 1 FIGO parameters for normal menstrual cycle
+    number_checked: Frequency 24-38 days, variation <= 7-9 days, duration <= 8 days
+    date: '2018'
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DISC-01
-
 - id: IRR-002
   domain: irregular_periods
   name: Frequent menstrual bleeding (< 24 days cycle length)
   when:
     all:
-      - field: cycle_length_days
-        op: "<"
-        value: 24
-      - field: hormonal_cycle_interference
-        op: "=="
-        value: false
+    - field: cycle_length_days
+      op: <
+      value: 24
+    - field: hormonal_cycle_interference
+      op: ==
+      value: false
   level: teleconsultation
   needs_physical_exam: false
-  reason: "Menstrual cycles occurring more frequently than every 24 days."
-  advice: "Please speak with a doctor via phone or video consultation. Cycles shorter than 24 days warrant medical review."
+  reason: Menstrual cycles occurring more frequently than every 24 days.
+  advice: Please speak with a doctor via phone or video consultation. Cycles shorter
+    than 24 days warrant medical review.
   doctor_may_suggest:
-    - "full blood count (FBC)"
-    - "serum ferritin"
-    - "thyroid stimulating hormone (TSH)"
-    - "serum prolactin"
+  - full blood count (FBC)
+  - serum ferritin
+  - thyroid stimulating hormone (TSH)
+  - serum prolactin
   source:
-    name: "FIGO 2018 System 1"
-    url: "https://www.ijgo.org/article/S0020-7292(18)30282-3/fulltext"
-    section: "Table 1 Frequency: Frequent (< 24 days)"
-    number_checked: "< 24 days cycle length"
-    date: "2018"
+    name: FIGO 2018 System 1
+    url: https://www.ijgo.org/article/S0020-7292(18)30282-3/fulltext
+    section: 'Table 1 Frequency: Frequent (< 24 days)'
+    number_checked: < 24 days cycle length
+    date: '2018'
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: IRR-003
   domain: irregular_periods
   name: Infrequent menstrual bleeding / Oligomenorrhea (39 to 90 days)
   when:
     all:
-      - any:
-          - all:
-              - field: cycle_length_days
-                op: ">="
-                value: 39
-              - field: cycle_length_days
-                op: "<="
-                value: 90
-          - all:
-              - field: cycles_per_year
-                op: "<"
-                value: 8
-              - field: days_since_last_period
-                op: "<="
-                value: 90
-      - field: pregnancy_excluded
-        op: "=="
-        value: true
-      - field: hormonal_cycle_interference
-        op: "=="
-        value: false
+    - any:
+      - all:
+        - field: cycle_length_days
+          op: '>='
+          value: 39
+        - field: cycle_length_days
+          op: <=
+          value: 90
+      - all:
+        - field: cycles_per_year
+          op: <
+          value: 8
+        - field: days_since_last_period
+          op: <=
+          value: 90
+    - field: pregnancy_excluded
+      op: ==
+      value: true
+    - field: hormonal_cycle_interference
+      op: ==
+      value: false
   level: teleconsultation
   needs_physical_exam: false
-  reason: "Infrequent menstrual cycles (cycles 39–90 days apart or fewer than 8 periods per year) with pregnancy ruled out."
-  advice: "Please schedule a teleconsultation with a doctor to evaluate cycle irregularity."
+  reason: "Infrequent menstrual cycles (cycles 39\u201390 days apart or fewer than\
+    \ 8 periods per year) with pregnancy ruled out."
+  advice: Please schedule a teleconsultation with a doctor to evaluate cycle irregularity.
   doctor_may_suggest:
-    - "thyroid stimulating hormone (TSH)"
-    - "serum prolactin"
-    - "total testosterone"
-    - "FSH and LH"
-    - "HbA1c / fasting glucose"
+  - thyroid stimulating hormone (TSH)
+  - serum prolactin
+  - total testosterone
+  - FSH and LH
+  - HbA1c / fasting glucose
   source:
-    name: "FIGO 2018 / 2023 PCOS Guideline"
-    url: "https://www.ijgo.org/article/S0020-7292(18)30282-3/fulltext"
-    section: "Table 1 Frequency: Infrequent (> 38 days) / PCOS Rec 1.1.1"
-    number_checked: "> 38 days cycle length or < 8 cycles/year"
-    date: "2018 / 2023"
+    name: FIGO 2018 / 2023 PCOS Guideline
+    url: https://www.ijgo.org/article/S0020-7292(18)30282-3/fulltext
+    section: 'Table 1 Frequency: Infrequent (> 38 days) / PCOS Rec 1.1.1'
+    number_checked: '> 38 days cycle length or < 8 cycles/year'
+    date: 2018 / 2023
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DISC-01
-
 - id: IRR-004
   domain: irregular_periods
   name: Secondary amenorrhea (no period for > 90 days)
   when:
     all:
-      - field: days_since_last_period
-        op: ">"
-        value: 90
-      - field: never_had_period
-        op: "=="
-        value: "no"
-      - field: pregnancy_excluded
-        op: "=="
-        value: true
-      - field: hormonal_cycle_interference
-        op: "=="
-        value: false
-      - field: physiological_lactational_amenorrhea
-        op: "!="
-        value: true
+    - field: days_since_last_period
+      op: '>'
+      value: 90
+    - field: never_had_period
+      op: ==
+      value: 'no'
+    - field: pregnancy_excluded
+      op: ==
+      value: true
+    - field: hormonal_cycle_interference
+      op: ==
+      value: false
+    - field: physiological_lactational_amenorrhea
+      op: '!='
+      value: true
   level: teleconsultation
   needs_physical_exam: false
-  reason: "Absence of periods for more than 90 days (secondary amenorrhea) in a woman not pregnant or on birth control."
-  advice: "Please consult a doctor via video or phone. Missing periods for over 3 months warrants medical review to evaluate hormone and metabolic balance."
+  reason: Absence of periods for more than 90 days (secondary amenorrhea) in a woman
+    not pregnant or on birth control.
+  advice: Please consult a doctor via video or phone. Missing periods for over 3 months
+    warrants medical review to evaluate hormone and metabolic balance.
   doctor_may_suggest:
-    - "serum hCG"
-    - "thyroid function test (TSH)"
-    - "serum prolactin"
-    - "FSH and LH"
-    - "serum estradiol"
+  - serum hCG
+  - thyroid function test (TSH)
+  - serum prolactin
+  - FSH and LH
+  - serum estradiol
   source:
-    name: "2023 International PCOS Guideline / NICE CKS"
-    url: "https://cks.nice.org.uk/topics/amenorrhoea/"
-    section: "Secondary amenorrhoea definition and initial investigations"
-    number_checked: "> 90 days without menstruation"
-    date: "May 2024"
+    name: 2023 International PCOS Guideline / NICE CKS
+    url: https://cks.nice.org.uk/topics/amenorrhoea/
+    section: Secondary amenorrhoea definition and initial investigations
+    number_checked: '> 90 days without menstruation'
+    date: May 2024
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DISC-06
-
 - id: IRR-005
   domain: irregular_periods
   name: Heavy menstrual bleeding (prolonged > 8 days or heavy flow, stable)
   when:
     all:
-      - any:
-          - field: bleeding_duration_days
-            op: ">"
-            value: 8
-          - field: self_reported_heavy_flow
-            op: "=="
-            value: "yes"
-      - field: soaking_pad_hourly_2plus_hours
-        op: "=="
-        value: "no"
-      - field: passing_large_clots
-        op: "=="
-        value: "no"
-      - field: reported_hemodynamic_instability
-        op: "=="
-        value: false
-      - field: unusual_fatigue
-        op: "=="
-        value: "no"
-      - field: noticeable_pallor
-        op: "=="
-        value: "no"
-      - field: breathless_on_mild_exertion
-        op: "=="
-        value: "no"
+    - any:
+      - field: bleeding_duration_days
+        op: '>'
+        value: 8
+      - field: self_reported_heavy_flow
+        op: ==
+        value: 'yes'
+    - field: soaking_pad_hourly_2plus_hours
+      op: ==
+      value: 'no'
+    - field: passing_large_clots
+      op: ==
+      value: 'no'
+    - field: reported_hemodynamic_instability
+      op: ==
+      value: false
+    - field: unusual_fatigue
+      op: ==
+      value: 'no'
+    - field: noticeable_pallor
+      op: ==
+      value: 'no'
+    - field: breathless_on_mild_exertion
+      op: ==
+      value: 'no'
   level: teleconsultation
   needs_physical_exam: false
-  reason: "Heavy or prolonged menstrual bleeding (> 8 days) without signs of acute blood loss or symptomatic anemia."
-  advice: "Please speak with a doctor via teleconsultation to discuss heavy flow management options. Initial medical therapy can often be initiated after a thorough history."
+  reason: Heavy or prolonged menstrual bleeding (> 8 days) without signs of acute
+    blood loss or symptomatic anemia.
+  advice: Please speak with a doctor via teleconsultation to discuss heavy flow management
+    options. Initial medical therapy can often be initiated after a thorough history.
   doctor_may_suggest:
-    - "full blood count (FBC)"
-    - "serum ferritin"
-    - "pelvic ultrasound"
+  - full blood count (FBC)
+  - serum ferritin
+  - pelvic ultrasound
   source:
-    name: "NICE NG88 / FIGO 2018"
-    url: "https://www.nice.org.uk/guidance/ng88/chapter/Recommendations#history-physical-examination-and-laboratory-tests"
-    section: "Section 1.2 Rec 1.2.4 & Rec 1.2.6"
-    number_checked: "Duration > 8 days or heavy flow impacting quality of life"
-    date: "March 2018, updated July 2026"
+    name: NICE NG88 / FIGO 2018
+    url: https://www.nice.org.uk/guidance/ng88/chapter/Recommendations#history-physical-examination-and-laboratory-tests
+    section: Section 1.2 Rec 1.2.4 & Rec 1.2.6
+    number_checked: Duration > 8 days or heavy flow impacting quality of life
+    date: March 2018, updated July 2026
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: IRR-006
   domain: irregular_periods
   name: Functional hypothalamic amenorrhea (FHA) suspicion
   when:
     all:
-      - field: days_since_last_period
-        op: ">"
-        value: 90
-      - field: never_had_period
-        op: "=="
-        value: "no"
-      - field: pregnancy_excluded
-        op: "=="
-        value: true
-      - field: hormonal_cycle_interference
-        op: "=="
-        value: false
-      - field: physiological_lactational_amenorrhea
-        op: "!="
-        value: true
-      - any:
-          - field: significant_weight_loss_or_heavy_training
-            op: "=="
-            value: "yes"
-          - field: bmi
-            op: "<"
-            value: 18.5
+    - field: days_since_last_period
+      op: '>'
+      value: 90
+    - field: never_had_period
+      op: ==
+      value: 'no'
+    - field: pregnancy_excluded
+      op: ==
+      value: true
+    - field: hormonal_cycle_interference
+      op: ==
+      value: false
+    - field: physiological_lactational_amenorrhea
+      op: '!='
+      value: true
+    - any:
+      - field: significant_weight_loss_or_heavy_training
+        op: ==
+        value: 'yes'
+      - field: bmi
+        op: <
+        value: 18.5
   level: teleconsultation
   needs_physical_exam: false
-  reason: "Absent periods for > 90 days associated with significant weight loss, intensive exercise, or low BMI (< 18.5 kg/m²)."
-  advice: "Please consult a doctor via teleconsultation. Amenorrhea associated with weight loss or heavy training can be linked to low energy availability. A doctor can review your history and discuss next steps."
+  reason: "Absent periods for > 90 days associated with significant weight loss, intensive\
+    \ exercise, or low BMI (< 18.5 kg/m\xB2)."
+  advice: Please consult a doctor via teleconsultation. Amenorrhea associated with
+    weight loss or heavy training can be linked to low energy availability. A doctor
+    can review your history and discuss next steps.
   doctor_may_suggest:
-    - "serum LH and FSH"
-    - "serum estradiol"
-    - "thyroid stimulating hormone (TSH)"
-    - "serum prolactin"
-    - "bone density scan (DEXA) if amenorrhea > 6 months"
+  - serum LH and FSH
+  - serum estradiol
+  - thyroid stimulating hormone (TSH)
+  - serum prolactin
+  - bone density scan (DEXA) if amenorrhea > 6 months
   source:
-    name: "Endocrine Society FHA Guideline"
-    url: "https://academic.oup.com/jcem/article/102/5/1413/3077770"
-    section: "Section 1 Evaluation of FHA"
-    number_checked: "Amenorrhea > 90 days + energy deficit or BMI < 18.5"
-    date: "2017, reaffirmed"
+    name: Endocrine Society FHA Guideline
+    url: https://academic.oup.com/jcem/article/102/5/1413/3077770
+    section: Section 1 Evaluation of FHA
+    number_checked: Amenorrhea > 90 days + energy deficit or BMI < 18.5
+    date: 2017, reaffirmed
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: IRR-007
   domain: irregular_periods
   name: Intermenstrual bleeding (IMB) in >= 2 cycles or persistent pelvic pain/pressure
   when:
     any:
-      - field: intermenstrual_bleeding_cycles
-        op: ">="
-        value: 2
-      - all:
-          - any:
-              - field: self_reported_heavy_flow
-                op: "=="
-                value: "yes"
-              - field: bleeding_duration_days
-                op: ">"
-                value: 8
-              - field: intermenstrual_bleeding_cycles
-                op: ">="
-                value: 1
-          - field: persistent_pelvic_pain_or_pressure
-            op: "=="
-            value: "yes"
+    - field: intermenstrual_bleeding_cycles
+      op: '>='
+      value: 2
+    - all:
+      - any:
+        - field: self_reported_heavy_flow
+          op: ==
+          value: 'yes'
+        - field: bleeding_duration_days
+          op: '>'
+          value: 8
+        - field: intermenstrual_bleeding_cycles
+          op: '>='
+          value: 1
+      - field: persistent_pelvic_pain_or_pressure
+        op: ==
+        value: 'yes'
   level: clinic_visit
   needs_physical_exam: true
-  physical_exam_reason: "In-person physical examination (speculum inspection of cervix and bimanual exam) and pelvic ultrasound required to evaluate PALM structural causes (endometrial polyps, fibroids, adenomyosis)."
-  reason: "Bleeding between periods in 2+ cycles, or heavy bleeding accompanied by ongoing pelvic pain or pressure."
-  advice: "Please see a doctor in person at a clinic. Recurrent bleeding between periods or heavy bleeding with pain warrants an in-person physical assessment and pelvic scan."
+  physical_exam_reason: In-person physical examination (speculum inspection of cervix
+    and bimanual exam) and pelvic ultrasound required to evaluate PALM structural
+    causes (endometrial polyps, fibroids, adenomyosis).
+  reason: Bleeding between periods in 2+ cycles, or heavy bleeding accompanied by
+    ongoing pelvic pain or pressure.
+  advice: Please see a doctor in person at a clinic. Recurrent bleeding between periods
+    or heavy bleeding with pain warrants an in-person physical assessment and pelvic
+    scan.
   doctor_may_suggest:
-    - "pelvic ultrasound (transvaginal preferred if acceptable)"
-    - "speculum examination and cervical visualization"
-    - "full blood count (FBC)"
+  - pelvic ultrasound (transvaginal preferred if acceptable)
+  - speculum examination and cervical visualization
+  - full blood count (FBC)
   source:
-    name: "NICE NG88"
-    url: "https://www.nice.org.uk/guidance/ng88/chapter/Recommendations#history-physical-examination-and-laboratory-tests"
-    section: "Section 1.2 Rec 1.2.4 & Section 1.3"
-    number_checked: "Intermenstrual bleeding in >= 2 cycles or persistent pain"
-    date: "Updated July 2026"
+    name: NICE NG88
+    url: https://www.nice.org.uk/guidance/ng88/chapter/Recommendations#history-physical-examination-and-laboratory-tests
+    section: Section 1.2 Rec 1.2.4 & Section 1.3
+    number_checked: Intermenstrual bleeding in >= 2 cycles or persistent pain
+    date: Updated July 2026
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: IRR-007A
   domain: irregular_periods
   name: Subacute heavy bleeding / large clots without instability
   when:
     all:
-      - any:
-          - field: soaking_pad_hourly_2plus_hours
-            op: "=="
-            value: "yes"
-          - field: passing_large_clots
-            op: "=="
-            value: "yes"
-      - field: reported_hemodynamic_instability
-        op: "=="
-        value: false
+    - any:
+      - field: soaking_pad_hourly_2plus_hours
+        op: ==
+        value: 'yes'
+      - field: passing_large_clots
+        op: ==
+        value: 'yes'
+    - field: reported_hemodynamic_instability
+      op: ==
+      value: false
   level: clinic_visit
   needs_physical_exam: true
-  physical_exam_reason: "In-person urgent clinical assessment for speculum examination, and baseline haemoglobin check as decided by the clinician."
-  reason: "Soaking pads hourly for 2+ hours or passing large clots (> 2.5 cm) while feeling otherwise stable."
-  advice: "Please visit an urgent care or outpatient clinic today for evaluation. Passing large clots or hourly soaking requires prompt in-person assessment."
+  physical_exam_reason: In-person urgent clinical assessment for speculum examination,
+    and baseline haemoglobin check as decided by the clinician.
+  reason: Soaking pads hourly for 2+ hours or passing large clots (> 2.5 cm) while
+    feeling otherwise stable.
+  advice: Please visit an urgent care or outpatient clinic today for evaluation. Passing
+    large clots or hourly soaking requires prompt in-person assessment.
   doctor_may_suggest:
-    - "urgent full blood count (FBC)"
-    - "speculum and bimanual pelvic examination"
-    - "pelvic ultrasound"
+  - urgent full blood count (FBC)
+  - speculum and bimanual pelvic examination
+  - pelvic ultrasound
   source:
-    name: "ACOG Committee Opinion No. 557 / CDC"
-    url: "https://www.cdc.gov/ncbddd/blooddisorders/women/menorrhagia.html"
-    section: "ACOG CO 557 Section on Initial Evaluation; CDC Menorrhagia Criteria"
-    number_checked: "Soaking >= 1 pad/hr for >= 2 hrs or clots > 2.5 cm without shock"
-    date: "April 2013, reaffirmed 2023"
+    name: ACOG Committee Opinion No. 557 / CDC
+    url: https://www.cdc.gov/ncbddd/blooddisorders/women/menorrhagia.html
+    section: ACOG CO 557 Section on Initial Evaluation; CDC Menorrhagia Criteria
+    number_checked: Soaking >= 1 pad/hr for >= 2 hrs or clots > 2.5 cm without shock
+    date: April 2013, reaffirmed 2023
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DEC-01
-
 - id: IRR-008
   domain: irregular_periods
   name: Postcoital bleeding (PCB)
   when:
     field: postcoital_bleeding
-    op: "=="
-    value: "yes"
+    op: ==
+    value: 'yes'
   level: clinic_visit
   needs_physical_exam: true
-  physical_exam_reason: "Recommends clinician-directed physical assessment, including visual inspection of the cervix (speculum examination) subject to informed consent, to evaluate for ectropion, polyp, cervicitis, or malignancy."
-  reason: "Vaginal bleeding occurring during or after sexual intercourse."
-  advice: "Please make an in-person appointment to see a doctor. Bleeding during or after intercourse should be evaluated by a healthcare professional to identify the cause and discuss appropriate next steps."
+  physical_exam_reason: Recommends clinician-directed physical assessment, including
+    visual inspection of the cervix (speculum examination) subject to informed consent,
+    to evaluate for ectropion, polyp, cervicitis, or malignancy.
+  reason: Vaginal bleeding occurring during or after sexual intercourse.
+  advice: Please make an in-person appointment to see a doctor. Bleeding during or
+    after intercourse should be evaluated by a healthcare professional to identify
+    the cause and discuss appropriate next steps.
   doctor_may_suggest:
-    - "speculum examination of the cervix"
-    - "cervical screening (HPV/Pap smear) if due"
-    - "cervical swabs for infection"
+  - speculum examination of the cervix
+  - cervical screening (HPV/Pap smear) if due
+  - cervical swabs for infection
   source:
-    name: "NICE NG12 / NICE CKS"
-    url: "https://cks.nice.org.uk/topics/bleeding-postcoital/"
-    section: "NICE NG12 Section 1.5 Gynaecological cancers; NICE CKS Postcoital bleeding"
-    number_checked: "Any postcoital bleeding (P42 == yes)"
-    date: "Updated May 2024"
+    name: NICE NG12 / NICE CKS
+    url: https://cks.nice.org.uk/topics/bleeding-postcoital/
+    section: NICE NG12 Section 1.5 Gynaecological cancers; NICE CKS Postcoital bleeding
+    number_checked: Any postcoital bleeding (P42 == yes)
+    date: Updated May 2024
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: IRR-009
   domain: irregular_periods
   name: Heavy menstrual bleeding with symptomatic anemia signs
   when:
     all:
-      - any:
-          - field: self_reported_heavy_flow
-            op: "=="
-            value: "yes"
-          - field: bleeding_duration_days
-            op: ">"
-            value: 8
-      - any:
-          - field: unusual_fatigue
-            op: "=="
-            value: "yes"
-          - field: noticeable_pallor
-            op: "=="
-            value: "yes"
-          - field: breathless_on_mild_exertion
-            op: "=="
-            value: "yes"
+    - any:
+      - field: self_reported_heavy_flow
+        op: ==
+        value: 'yes'
+      - field: bleeding_duration_days
+        op: '>'
+        value: 8
+    - any:
+      - field: unusual_fatigue
+        op: ==
+        value: 'yes'
+      - field: noticeable_pallor
+        op: ==
+        value: 'yes'
+      - field: breathless_on_mild_exertion
+        op: ==
+        value: 'yes'
   level: clinic_visit
   needs_physical_exam: true
-  physical_exam_reason: "In-person clinical assessment of conjunctival pallor, resting heart rate, and formal blood draw for full blood count and serum ferritin."
-  reason: "Heavy menstrual bleeding accompanied by unusual exhaustion, noticeable pale skin, or shortness of breath."
-  advice: "Please schedule an in-person clinic visit. Heavy bleeding combined with exhaustion or breathlessness can indicate anemia requiring treatment."
+  physical_exam_reason: In-person clinical assessment of conjunctival pallor, resting
+    heart rate, and formal blood draw for full blood count and serum ferritin.
+  reason: Heavy menstrual bleeding accompanied by unusual exhaustion, noticeable pale
+    skin, or shortness of breath.
+  advice: Please schedule an in-person clinic visit. Heavy bleeding combined with
+    exhaustion or breathlessness can indicate anemia requiring treatment.
   doctor_may_suggest:
-    - "full blood count (FBC)"
-    - "serum ferritin"
-    - "pelvic ultrasound"
+  - full blood count (FBC)
+  - serum ferritin
+  - pelvic ultrasound
   source:
-    name: "NICE NG88 / FOGSI"
-    url: "https://www.nice.org.uk/guidance/ng88/chapter/Recommendations#history-physical-examination-and-laboratory-tests"
-    section: "NICE NG88 Rec 1.2.6; FOGSI GCPR on Anaemia"
-    number_checked: "Heavy bleeding + >= 1 systemic anemia symptom"
-    date: "Updated July 2026"
+    name: NICE NG88 / FOGSI
+    url: https://www.nice.org.uk/guidance/ng88/chapter/Recommendations#history-physical-examination-and-laboratory-tests
+    section: NICE NG88 Rec 1.2.6; FOGSI GCPR on Anaemia
+    number_checked: Heavy bleeding + >= 1 systemic anemia symptom
+    date: Updated July 2026
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: IRR-010
   domain: irregular_periods
   name: Menstrual irregularity with palpable abdominal/pelvic lump
   when:
     all:
-      - any:
-          - field: days_since_last_period
-            op: ">"
-            value: 90
-          - field: cycle_length_days
-            op: "<"
-            value: 24
-          - field: cycle_length_days
-            op: ">"
-            value: 38
-          - field: self_reported_heavy_flow
-            op: "=="
-            value: "yes"
-          - field: bleeding_duration_days
-            op: ">"
-            value: 8
-          - field: intermenstrual_bleeding_cycles
-            op: ">="
-            value: 1
-      - any:
-          - field: palpable_pelvic_lump
-            op: "=="
-            value: "yes"
-          - all:
-              - field: days_since_last_period
-                op: ">"
-                value: 90
-              - field: persistent_pelvic_pain_or_pressure
-                op: "=="
-                value: "yes"
+    - any:
+      - field: days_since_last_period
+        op: '>'
+        value: 90
+      - field: cycle_length_days
+        op: <
+        value: 24
+      - field: cycle_length_days
+        op: '>'
+        value: 38
+      - field: self_reported_heavy_flow
+        op: ==
+        value: 'yes'
+      - field: bleeding_duration_days
+        op: '>'
+        value: 8
+      - field: intermenstrual_bleeding_cycles
+        op: '>='
+        value: 1
+    - any:
+      - field: palpable_pelvic_lump
+        op: ==
+        value: 'yes'
+      - all:
+        - field: days_since_last_period
+          op: '>'
+          value: 90
+        - field: persistent_pelvic_pain_or_pressure
+          op: ==
+          value: 'yes'
   level: clinic_visit
   needs_physical_exam: true
-  physical_exam_reason: "Immediate in-person physical examination to locate mass (fibroid, ovarian cyst, adnexal mass) followed by urgent pelvic ultrasound."
-  reason: "Menstrual irregularity or missed periods accompanied by a lower belly lump or persistent pressure."
-  advice: "Please see a doctor in person at a clinic. Feeling a lump or ongoing pressure in your lower abdomen should be evaluated by a healthcare provider for an appropriate assessment."
+  physical_exam_reason: Immediate in-person physical examination to locate mass (fibroid,
+    ovarian cyst, adnexal mass) followed by urgent pelvic ultrasound.
+  reason: Menstrual irregularity or missed periods accompanied by a lower belly lump
+    or persistent pressure.
+  advice: Please see a doctor in person at a clinic. Feeling a lump or ongoing pressure
+    in your lower abdomen should be evaluated by a healthcare provider for an appropriate
+    assessment.
   doctor_may_suggest:
-    - "urgent pelvic ultrasound (transvaginal and transabdominal)"
-    - "bimanual pelvic examination"
+  - urgent pelvic ultrasound (transvaginal and transabdominal)
+  - bimanual pelvic examination
   source:
-    name: "NICE NG12 / Task Brief"
-    url: "https://www.nice.org.uk/guidance/ng12/chapter/Recommendations#gynaecological-cancers"
-    section: "Section 1.5 Pelvic mass / Task Brief Patient C"
-    number_checked: "Palpable pelvic lump (P47 == yes)"
-    date: "Updated 2024"
+    name: NICE NG12 / Task Brief
+    url: https://www.nice.org.uk/guidance/ng12/chapter/Recommendations#gynaecological-cancers
+    section: Section 1.5 Pelvic mass / Task Brief Patient C
+    number_checked: Palpable pelvic lump (P47 == yes)
+    date: Updated 2024
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: IRR-011
   domain: irregular_periods
   name: Primary amenorrhea (never menstruated at age >= 18)
   when:
     all:
-      - field: never_had_period
-        op: "=="
-        value: "yes"
-      - field: age
-        op: ">="
-        value: 18
-      - field: age
-        op: "<="
-        value: 40
+    - field: never_had_period
+      op: ==
+      value: 'yes'
+    - field: age
+      op: '>='
+      value: 18
+    - field: age
+      op: <=
+      value: 40
   level: clinic_visit
   needs_physical_exam: true
-  physical_exam_reason: "Specialist evaluation to assess secondary sexual characteristics, anatomical patency (imperforate hymen, vaginal septum), and pelvic imaging/karyotyping."
-  reason: "Woman aged 18 or older who has never had a natural menstrual period."
-  advice: "Please see a specialist doctor in person. Having never menstruated by age 18 requires comprehensive specialist clinical evaluation."
+  physical_exam_reason: Specialist evaluation to assess secondary sexual characteristics,
+    anatomical patency (imperforate hymen, vaginal septum), and pelvic imaging/karyotyping.
+  reason: Woman aged 18 or older who has never had a natural menstrual period.
+  advice: Please see a specialist doctor in person. Having never menstruated by age
+    18 requires comprehensive specialist clinical evaluation.
   doctor_may_suggest:
-    - "pelvic ultrasound"
-    - "serum FSH, LH, and estradiol"
-    - "serum prolactin and TSH"
-    - "karyotype analysis"
+  - pelvic ultrasound
+  - serum FSH, LH, and estradiol
+  - serum prolactin and TSH
+  - karyotype analysis
   source:
-    name: "NICE CKS / ACOG CO 651"
-    url: "https://cks.nice.org.uk/topics/amenorrhoea/management/primary-amenorrhoea/"
-    section: "Primary amenorrhoea referral criteria"
-    number_checked: "Age >= 18 without spontaneous menarche"
-    date: "May 2024"
+    name: NICE CKS / ACOG CO 651
+    url: https://cks.nice.org.uk/topics/amenorrhoea/management/primary-amenorrhoea/
+    section: Primary amenorrhoea referral criteria
+    number_checked: Age >= 18 without spontaneous menarche
+    date: May 2024
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: IRR-012
   domain: irregular_periods
   name: Unscheduled bleeding on hormonal contraception
   when:
     all:
-      - field: unscheduled_contraceptive_bleeding
-        op: "=="
-        value: "yes"
-      - field: contraceptive_method_type
-        op: "not_in"
-        value: ["none", "barrier_or_other", "copper_iud"]
+    - field: unscheduled_contraceptive_bleeding
+      op: ==
+      value: 'yes'
+    - field: contraceptive_method_type
+      op: not_in
+      value:
+      - none
+      - barrier_or_other
+      - copper_iud
   base_level: teleconsultation
   needs_physical_exam: false
   conditional_escalation:
     when:
       any:
-        - field: contraception_duration_months
-          op: ">"
-          value: 3
-        - field: contraception_duration_months
-          op: "=="
-          value: "unknown"
-        - field: cervical_screening_up_to_date
-          op: "in"
-          value: ["no", "unknown"]
+      - field: contraception_duration_months
+        op: '>'
+        value: 3
+      - field: contraception_duration_months
+        op: ==
+        value: unknown
+      - field: cervical_screening_up_to_date
+        op: in
+        value:
+        - 'no'
+        - unknown
     escalate_to: clinic_visit
     needs_physical_exam: true
-    physical_exam_reason: "Unscheduled bleeding persisting beyond 3 months or with overdue/unknown cervical screening requires in-person clinician examination to inspect the cervix."
-  reason: "Unexpected bleeding or spotting while using hormonal birth control."
-  advice: "Please consult a doctor to review your contraceptive method. If bleeding persists beyond 3 months or cervical screening is due, an in-person examination is recommended."
+    physical_exam_reason: Unscheduled bleeding persisting beyond 3 months or with
+      overdue/unknown cervical screening requires in-person clinician examination
+      to inspect the cervix.
+  reason: Unexpected bleeding or spotting while using hormonal birth control.
+  advice: Please consult a doctor to review your contraceptive method. If bleeding
+    persists beyond 3 months or cervical screening is due, an in-person examination
+    is recommended.
   doctor_may_suggest:
-    - "review of contraceptive compliance and drug interactions"
-    - "cervical screening check"
-    - "chlamydia and gonorrhea screening"
+  - review of contraceptive compliance and drug interactions
+  - cervical screening check
+  - chlamydia and gonorrhea screening
   source:
-    name: "FSRH Guidance"
-    url: "https://www.fsrh.org/standards-and-guidance/documents/ceuguidanceproblematicbleedinghormonalcontraception/"
-    section: "Section 2 Initial assessment & Section 3 Examination"
-    number_checked: "Unscheduled bleeding on hormonal contraception; threshold 3 months"
-    date: "2015, amended 2020"
+    name: FSRH Guidance
+    url: https://www.fsrh.org/standards-and-guidance/documents/ceuguidanceproblematicbleedinghormonalcontraception/
+    section: Section 2 Initial assessment & Section 3 Examination
+    number_checked: Unscheduled bleeding on hormonal contraception; threshold 3 months
+    date: 2015, amended 2020
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
-
 - id: IRR-013
   domain: irregular_periods
   name: Subacute pelvic infection / uncomplicated PID presentation
   when:
     all:
-      - field: pelvic_pain_any
-        op: "=="
-        value: "yes"
-      - any:
-          - field: foul_smelling_or_purulent_discharge
-            op: "=="
-            value: "yes"
-          - field: feels_feverish_or_has_chills
-            op: "=="
-            value: "yes"
-          - field: pelvic_infection_treated_no_improvement_72h
-            op: "=="
-            value: "yes"
-      - field: pelvic_infection_severity_marker
-        op: "=="
-        value: false
+    - field: pelvic_pain_any
+      op: ==
+      value: 'yes'
+    - any:
+      - field: foul_smelling_or_purulent_discharge
+        op: ==
+        value: 'yes'
+      - field: feels_feverish_or_has_chills
+        op: ==
+        value: 'yes'
+      - field: pelvic_infection_treated_no_improvement_72h
+        op: ==
+        value: 'yes'
+    - field: pelvic_infection_severity_marker
+      op: ==
+      value: false
   level: clinic_visit
   needs_physical_exam: true
-  physical_exam_reason: "In-person bimanual examination to elicit cervical motion, uterine, or adnexal tenderness and collect endocervical/vaginal swabs for NAAT."
-  reason: "Lower belly pain with unusual discharge, chills, or lack of improvement on antibiotics, without severe toxic illness."
-  advice: "Please see a doctor in person promptly. Pelvic pain with unusual discharge warrants an in-person physical examination and swab tests to check for pelvic infection."
+  physical_exam_reason: In-person bimanual examination to elicit cervical motion,
+    uterine, or adnexal tenderness and collect endocervical/vaginal swabs for NAAT.
+  reason: Lower belly pain with unusual discharge, chills, or lack of improvement
+    on antibiotics, without severe toxic illness.
+  advice: Please see a doctor in person promptly. Pelvic pain with unusual discharge
+    warrants an in-person physical examination and swab tests to check for pelvic
+    infection.
   doctor_may_suggest:
-    - "bimanual pelvic examination for cervical motion tenderness"
-    - "high vaginal and endocervical swabs for NAAT"
-    - "first-line outpatient oral antibiotic protocol"
+  - bimanual pelvic examination for cervical motion tenderness
+  - high vaginal and endocervical swabs for NAAT
+  - first-line outpatient oral antibiotic protocol
   source:
-    name: "CDC / BASHH / RCOG GTG 32"
-    url: "https://www.cdc.gov/std/treatment-guidelines/pid.htm"
-    section: "Diagnostic Criteria for PID; Treatment Failure at 72 hours"
-    number_checked: "Pelvic pain + discharge or chills without sepsis markers"
-    date: "2021"
+    name: CDC / BASHH / RCOG GTG 32
+    url: https://www.cdc.gov/std/treatment-guidelines/pid.htm
+    section: Diagnostic Criteria for PID; Treatment Failure at 72 hours
+    number_checked: Pelvic pain + discharge or chills without sepsis markers
+    date: '2021'
     evidence_status: evidence_located
     approval_status: mapping_pending_doctor_approval
   pending_clinical_decision: DEC-02
+- id: ENDO-001
+  domain: endometriosis
+  name: Normal menses without endometriosis features
+  when:
+    all:
+    - field: period_pain_affects_daily_life
+      op: ==
+      value: 'no'
+    - field: deep_dyspareunia
+      op: ==
+      value: 'no'
+    - field: cyclical_bowel_symptoms
+      op: ==
+      value: 'no'
+    - field: cyclical_urinary_symptoms
+      op: ==
+      value: 'no'
+    - field: chronic_pelvic_pain_6plus_months
+      op: ==
+      value: 'no'
+    - field: known_endometriosis
+      op: ==
+      value: 'no'
+  level: self_care
+  needs_physical_exam: false
+  reason: No significant period pain affecting daily life, deep painful intercourse,
+    or cyclical bowel/bladder symptoms reported.
+  advice: Your symptom report does not indicate signs of endometriosis. Over-the-counter
+    pain relief can be used as needed for mild menstrual cramps.
+  doctor_may_suggest:
+  - routine lifestyle self-care
+  source:
+    name: NICE NG73
+    url: https://www.nice.org.uk/guidance/ng73
+    section: Recommendation 1.1.1 (When to suspect endometriosis)
+    number_checked: Absence of cardinal endometriosis pain features
+    date: '2017'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: ENDO-002
+  domain: endometriosis
+  name: Severe cyclical dysmenorrhea affecting daily life
+  when:
+    field: period_pain_affects_daily_life
+    op: ==
+    value: 'yes'
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Painful periods that interfere with daily activities, work, or school warrant
+    medical assessment.
+  advice: Please schedule a consultation with a doctor. Disabling period pain is not
+    something you have to tolerate and can be effectively managed with medical therapy.
+  doctor_may_suggest:
+  - first-line medical management (NSAIDs and/or combined hormonal contraception /
+    progestins)
+  - symptom diary to record pain patterns
+  - consideration of pelvic ultrasound if symptoms persist
+  source:
+    name: NICE NG73
+    url: https://www.nice.org.uk/guidance/ng73
+    section: Recommendation 1.1.1 & 1.4.1 (First-line medical management)
+    number_checked: Period pain that interferes with daily activities or does not
+      respond to first-line analgesics
+    date: '2017'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: ENDO-003
+  domain: endometriosis
+  name: Deep dyspareunia or cyclical gastrointestinal/urinary symptoms
+  when:
+    any:
+    - field: deep_dyspareunia
+      op: ==
+      value: 'yes'
+    - field: cyclical_bowel_symptoms
+      op: ==
+      value: 'yes'
+    - field: cyclical_urinary_symptoms
+      op: ==
+      value: 'yes'
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Pain during deep intercourse or cyclical bowel/urinary symptoms (pain or
+    bleeding timed with menstrual cycle) are key signs of suspected endometriosis.
+  advice: Please consult a healthcare provider. Cyclical pain during intimacy, bowel
+    movements, or urination suggests possible endometriosis and deserves thorough
+    clinical evaluation.
+  doctor_may_suggest:
+  - clinical assessment of deep pelvic endometriosis features
+  - trial of hormonal therapy or specialized gynecological ultrasound
+  source:
+    name: NICE NG73
+    url: https://www.nice.org.uk/guidance/ng73
+    section: Recommendation 1.1.1 (Suspecting endometriosis)
+    number_checked: Deep dyspareunia, cyclical gastrointestinal symptoms, or cyclical
+      urinary symptoms
+    date: '2017'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: ENDO-004
+  domain: endometriosis
+  name: Chronic pelvic pain >= 6 months or palpable pelvic mass
+  when:
+    any:
+    - field: chronic_pelvic_pain_6plus_months
+      op: ==
+      value: 'yes'
+    - field: pelvic_mass_or_fullness
+      op: ==
+      value: 'yes'
+  level: clinic_visit
+  needs_physical_exam: true
+  physical_exam_reason: Abdominal and bimanual pelvic examination to assess for pelvic
+    masses, nodularity, or fixed pelvic organs.
+  reason: Persistent pelvic pain lasting 6 months or more, or sensation/finding of
+    a pelvic mass, requires in-person physical assessment and imaging.
+  advice: Please book an in-person appointment with a doctor. Chronic pelvic pain
+    or a suspected pelvic mass warrants an examination and pelvic ultrasound to check
+    for endometriomas or structural causes.
+  doctor_may_suggest:
+  - bimanual pelvic examination
+  - transvaginal pelvic ultrasound to check for ovarian endometriomas or adenomyosis
+  - gynecology specialist referral
+  source:
+    name: NICE NG73 / RCOG GTG 41
+    url: https://www.nice.org.uk/guidance/ng73
+    section: Recommendation 1.1.2 & 1.2.1 (Physical examination and ultrasound)
+    number_checked: Chronic non-cyclical pelvic pain >= 6 months or palpable mass
+    date: '2017'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: ENDO-005
+  domain: endometriosis
+  name: Suspected endometriosis with failure of initial medical therapy
+  when:
+    field: prior_endometriosis_treatment_failed
+    op: ==
+    value: 'yes'
+  level: clinic_visit
+  needs_physical_exam: true
+  physical_exam_reason: Specialist in-person pelvic assessment and referral preparation
+    following lack of symptom control on first-line therapy.
+  reason: Lack of pain relief after a course of hormonal treatment or pain relief
+    warrants in-person evaluation and specialist referral.
+  advice: Please see a doctor in person. When first-line treatments do not provide
+    sufficient symptom relief, further investigations or referral to a gynecologist
+    are recommended.
+  doctor_may_suggest:
+  - specialist referral to a gynecologist or endometriosis centre
+  - advanced transvaginal ultrasound or pelvic MRI
+  - discussion of second-line therapies or diagnostic laparoscopy
+  source:
+    name: NICE NG73
+    url: https://www.nice.org.uk/guidance/ng73
+    section: Recommendation 1.4.4 & 1.5.1 (Referral criteria for failed initial medical
+      treatment)
+    number_checked: Referral to specialist if initial hormonal treatment fails or
+      is contraindicated
+    date: '2017'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: ENDO-006
+  domain: endometriosis
+  name: Suspected endometriosis with concurrent subfertility
+  when:
+    all:
+    - field: endometriosis_suspicion_signal
+      op: ==
+      value: true
+    - field: trying_to_conceive
+      op: ==
+      value: 'yes'
+  level: clinic_visit
+  needs_physical_exam: true
+  physical_exam_reason: Specialist pelvic examination and early coordinated fertility/gynecology
+    investigation.
+  reason: Presence of endometriosis symptoms alongside difficulty conceiving warrants
+    early specialist evaluation to assess tubal and ovarian involvement.
+  advice: Please arrange an in-person doctor appointment. Having endometriosis symptoms
+    while trying to conceive benefits from earlier specialist assessment rather than
+    waiting.
+  doctor_may_suggest:
+  - pelvic ultrasound to assess for endometriomas and anatomy
+  - early referral to a fertility specialist or endometriosis service
+  - tubal patency assessment (e.g. HyCoSy / HSG)
+  source:
+    name: NICE NG73
+    url: https://www.nice.org.uk/guidance/ng73
+    section: Recommendation 1.5.2 (Referral for women with endometriosis and subfertility)
+    number_checked: Direct referral to specialist endometriosis/fertility service
+      without waiting standard duration
+    date: '2017'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: ENDO-007
+  domain: endometriosis
+  name: Confirmed endometriosis routine monitoring
+  when:
+    field: known_endometriosis
+    op: ==
+    value: 'yes'
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Known diagnosis of endometriosis seeking routine medication review or symptom
+    management.
+  advice: Please book a consultation with your doctor to review your current management
+    plan and adjust treatment if your symptoms have changed.
+  doctor_may_suggest:
+  - evaluation of symptom control on current therapy
+  - routine follow-up and prescription renewal
+  source:
+    name: NICE NG73 / ESHRE Endometriosis Guideline
+    url: https://www.nice.org.uk/guidance/ng73
+    section: Recommendation 1.6 (Long-term management and monitoring)
+    number_checked: Routine ongoing management in primary care
+    date: '2022'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: ENDO-008
+  domain: endometriosis
+  is_proposed_mapping: true
+  pending_clinical_decision: DEC-07
+  name: Proposed multi-symptom endometriosis escalation (>= 2 features)
+  when:
+    field: endometriosis_symptom_count_ge_2
+    op: ==
+    value: true
+  level: clinic_visit
+  needs_physical_exam: true
+  physical_exam_reason: In-person evaluation proposed for multisymptom presentation
+    pending doctor approval.
+  reason: 'Proposed mapping: Presence of two or more cardinal endometriosis symptoms
+    (disabling period pain, deep dyspareunia, cyclical bowel/urinary symptoms).'
+  advice: Please consult a healthcare provider for an in-person assessment. Experiencing
+    multiple cyclical pelvic symptoms indicates a stronger suspicion of endometriosis.
+  doctor_may_suggest:
+  - clinical pelvic examination
+  - pelvic ultrasound
+  source:
+    name: NICE NG73 (Clinical Interpretation / Proposed Mapping)
+    url: https://www.nice.org.uk/guidance/ng73
+    section: Recommendation 1.1.1 (Proposed clinical escalation threshold pending
+      doctor approval)
+    number_checked: 'Proposed mapping: >= 2 of 4 cardinal symptoms. Note: Numerical
+      threshold not explicit in NICE NG73; pending doctor approval under DEC-07'
+    date: '2017'
+    evidence_status: evidence_absent
+    approval_status: mapping_pending_doctor_approval
+- id: FERT-001
+  domain: fertility
+  name: Preconception counseling / normal fertility window
+  when:
+    all:
+    - field: trying_to_conceive
+      op: ==
+      value: 'yes'
+    - field: age
+      op: <
+      value: 35
+    - field: trying_duration_months
+      op: <
+      value: 12
+    - field: pcos_ovulatory_dysfunction_pattern
+      op: ==
+      value: false
+    - field: tubal_risk_history
+      op: ==
+      value: false
+    - field: unable_to_have_penetrative_intercourse
+      op: ==
+      value: 'no'
+  level: self_care
+  needs_physical_exam: false
+  reason: Trying to conceive for less than 12 months at age under 35 with regular
+    menstrual cycles and no known risk factors.
+  advice: Over 80% of couples conceive naturally within one year of regular unprotected
+    intercourse. Preconception advice including folic acid supplementation (400 mcg
+    daily) is recommended.
+  doctor_may_suggest:
+  - routine preconception counseling and folic acid
+  source:
+    name: NICE NG257 / ASRM Infertility Workup
+    url: https://www.nice.org.uk/guidance/ng257
+    section: Recommendation 1.1.1 & 1.1.2 (Natural conception chances and lifestyle)
+    number_checked: 84% conceive within 1 year; investigation threshold is >= 12 months
+      for age < 35
+    date: '2024'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: FERT-002
+  domain: fertility
+  name: Formal infertility threshold (age < 35, trying >= 12 months)
+  pending_clinical_decision: DEC-09A
+  when:
+    all:
+    - field: trying_to_conceive
+      op: ==
+      value: 'yes'
+    - field: age
+      op: <
+      value: 35
+    - field: trying_duration_months
+      op: '>='
+      value: 12
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Trying to conceive for 12 months or more without success meets the standard
+    guideline definition for clinical fertility evaluation.
+  advice: Please schedule a consultation with a doctor. After 12 months of trying
+    without conceiving, initial fertility tests for both partners are recommended.
+  doctor_may_suggest:
+  - semen analysis for male partner
+  - mid-luteal progesterone (day 21) or ovulation confirmation
+  - rubella immunity and baseline hormone tests
+  source:
+    name: NICE NG257 / ASRM Infertility Workup
+    url: https://www.nice.org.uk/guidance/ng257
+    section: Recommendation 1.2.1 (Investigation threshold for age < 35)
+    number_checked: 12 months of regular unprotected intercourse without pregnancy
+    date: '2024'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: FERT-003
+  domain: fertility
+  name: Earlier fertility evaluation (age >= 35, trying >= 6 months)
+  when:
+    all:
+    - field: trying_to_conceive
+      op: ==
+      value: 'yes'
+    - field: age
+      op: '>='
+      value: 35
+    - field: trying_duration_months
+      op: '>='
+      value: 6
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Women aged 35 and older who have been trying for 6 months or more qualify
+    for earlier fertility evaluation.
+  advice: Please book a consultation with a doctor. At age 35 or above, guidelines
+    recommend beginning fertility checks after 6 months of trying rather than waiting
+    a full year.
+  doctor_may_suggest:
+  - simultaneous male and female fertility evaluation
+  - ovulatory assessment, pelvic ultrasound, and tubal patency evaluation
+  - earlier referral to reproductive endocrinology
+  source:
+    name: ASRM Committee Opinion / NICE NG257
+    url: https://www.asrm.org/practice-guidance/practice-committee-documents/
+    section: ASRM 2021 Guidance on Evaluation of Infertile Women
+    number_checked: Age >= 35 evaluation after 6 months of unprotected intercourse
+    date: '2021'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: FERT-004
+  domain: fertility
+  is_proposed_mapping: true
+  pending_clinical_decision: DEC-09
+  name: Proposed earlier specialist consultation (age 36-40, trying < 6 months)
+  when:
+    all:
+    - field: trying_to_conceive
+      op: ==
+      value: 'yes'
+    - field: age
+      op: '>='
+      value: 36
+    - field: age
+      op: <=
+      value: 40
+    - field: trying_duration_months
+      op: <
+      value: 6
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: 'Proposed mapping: Woman aged 36 to 40 trying for under 6 months. NICE NG257
+    mentions earlier specialist consultation may be considered; mapped to teleconsultation
+    pending doctor approval.'
+  advice: We recommend scheduling a consultation with your doctor. Guidelines suggest
+    that women aged 36 and older may consider an earlier discussion regarding fertility
+    planning.
+  doctor_may_suggest:
+  - preconception review and discussion of fertility timeline
+  - baseline health screening and timing advice
+  source:
+    name: NICE NG257 (Proposed Clinical Mapping under DEC-09)
+    url: https://www.nice.org.uk/guidance/ng257
+    section: Recommendation 1.2.3 (Earlier consultation for women aged 36 or older)
+    number_checked: NICE suggests offering earlier consultation for age >= 36; Yellow
+      triage mapping is proposed pending doctor approval
+    date: '2024'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: FERT-005
+  domain: fertility
+  name: Subfertility with ovulatory dysfunction or irregular cycles
+  when:
+    all:
+    - field: trying_to_conceive
+      op: ==
+      value: 'yes'
+    - field: pcos_ovulatory_dysfunction_pattern
+      op: ==
+      value: true
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Trying to conceive with irregular or infrequent menstrual cycles indicates
+    ovulatory dysfunction requiring medical assessment.
+  advice: Please schedule a consultation with a doctor. Irregular cycles while trying
+    to conceive indicate that ovulation may be irregular, and medical evaluation can
+    help identify and treat the cause.
+  doctor_may_suggest:
+  - hormonal assessment (FSH, LH, prolactin, TSH, androgen panel)
+  - pelvic ultrasound
+  - discussion of ovulation induction options (e.g., letrozole)
+  source:
+    name: NICE NG257 / ASRM
+    url: https://www.nice.org.uk/guidance/ng257
+    section: 'Recommendation 1.2.2 (Known reasons for earlier investigation: amenorrhea
+      or oligomenorrhea)'
+    number_checked: Immediate evaluation without waiting 12 months if ovulatory disorder
+      suspected
+    date: '2024'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: FERT-006
+  domain: fertility
+  name: Subfertility with history of tubal risk factors
+  when:
+    all:
+    - field: trying_to_conceive
+      op: ==
+      value: 'yes'
+    - field: tubal_risk_history
+      op: ==
+      value: true
+  level: clinic_visit
+  needs_physical_exam: true
+  physical_exam_reason: In-person evaluation and imaging/patency referral for high-risk
+    tubal factor history.
+  reason: Trying to conceive with a history of PID, ectopic pregnancy, or pelvic surgery
+    poses significant risk of tubal occlusion.
+  advice: Please see a doctor in person. A history of pelvic infection, ectopic pregnancy,
+    or pelvic surgery warrants earlier in-person evaluation and tests to check fallopian
+    tube patency.
+  doctor_may_suggest:
+  - hysterosalpingography (HSG) or HyCoSy to check tubal patency
+  - chlamydia antibody or current NAAT screening
+  - gynecology or fertility specialist referral
+  source:
+    name: NICE NG257
+    url: https://www.nice.org.uk/guidance/ng257
+    section: Recommendation 1.2.2 (Early investigation for tubal factors)
+    number_checked: Immediate referral without waiting if history of PID, ectopic,
+      or pelvic surgery
+    date: '2024'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: FERT-007
+  domain: fertility
+  pending_clinical_decision: DEC-10
+  name: Recurrent pregnancy loss
+  when:
+    any:
+    - field: miscarriage_count
+      op: '>='
+      value: 2
+    - field: second_trimester_loss
+      op: ==
+      value: 'yes'
+  level: clinic_visit
+  needs_physical_exam: true
+  physical_exam_reason: In-person evaluation and recurrent miscarriage investigation
+    panel.
+  reason: Two or more miscarriages or any second-trimester loss meets criteria for
+    recurrent pregnancy loss evaluation.
+  advice: Please book an in-person doctor appointment. Experiencing two or more pregnancy
+    losses or a second-trimester loss warrants dedicated medical investigations.
+  doctor_may_suggest:
+  - antiphospholipid antibody panel (lupus anticoagulant, anticardiolipin, anti-beta-2
+    glycoprotein I)
+  - pelvic ultrasound / 3D scan to assess uterine anatomy
+  - thyroid function and parental karyotype if indicated
+  source:
+    name: ESHRE Recurrent Pregnancy Loss Guideline / RCOG GTG 17
+    url: https://www.eshre.eu/Guidelines-and-Legal/Guidelines/Recurrent-pregnancy-loss
+    section: Definition and Workup of Recurrent Pregnancy Loss
+    number_checked: Threshold of >= 2 pregnancy losses (ESHRE 2023) or second-trimester
+      loss
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: FERT-008
+  domain: fertility
+  name: Subfertility associated with inability to have penetrative intercourse
+  when:
+    all:
+    - field: trying_to_conceive
+      op: ==
+      value: 'yes'
+    - field: unable_to_have_penetrative_intercourse
+      op: ==
+      value: 'yes'
+  level: clinic_visit
+  needs_physical_exam: true
+  physical_exam_reason: In-person physical examination to assess pelvic floor hypertonicity,
+    vaginismus, or anatomical barriers.
+  reason: Inability to achieve penetrative intercourse requires compassionate in-person
+    physical assessment and specialist support.
+  advice: Please schedule an in-person consultation with a doctor. Difficulties with
+    intercourse are treatable, and healthcare professionals can offer compassionate
+    assessment and care.
+  doctor_may_suggest:
+  - gentle physical examination
+  - referral to specialized psychosexual medicine or pelvic floor physiotherapy
+  - assisted conception options if appropriate
+  source:
+    name: NICE NG257
+    url: https://www.nice.org.uk/guidance/ng257
+    section: Recommendation 1.2.2 (Coital difficulties as indication for early referral)
+    number_checked: Immediate referral without waiting if coital difficulties prevent
+      intercourse
+    date: '2024'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: PCOS-001
+  domain: pcos
+  name: Ovulatory dysfunction screening in adult women (>= 3 yrs post-menarche)
+  when:
+    all:
+    - field: adult_gynecological_age
+      op: ==
+      value: true
+    - field: pregnancy_excluded
+      op: ==
+      value: true
+    - field: hormonal_cycle_interference
+      op: ==
+      value: false
+    - any:
+      - field: cycle_length_days
+        op: <
+        value: 21
+      - field: cycle_length_days
+        op: '>'
+        value: 35
+      - field: cycles_per_year
+        op: <
+        value: 8
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Menstrual cycle frequency outside 21 to 35 days in adult gynecological age
+    suggestive of ovulatory dysfunction.
+  advice: Please consult a healthcare provider for routine evaluation of cycle irregularity
+    and ovulatory function.
+  doctor_may_suggest:
+  - serum androgen panel (total/free testosterone, SHBG, FAI)
+  - TSH and prolactin to exclude thyroid or hyperprolactinemic disorder
+  - cycle tracking and lifestyle optimization
+  source:
+    name: 2023 International Evidence-based PCOS Guideline
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Recommendation 1.1.1 (Ovulatory dysfunction criteria)
+    number_checked: Cycle length < 21 or > 35 days or < 8 cycles per year
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: PCOS-002
+  domain: pcos
+  name: Single prolonged cycle gap > 90 days in adult women with PCOS features
+  when:
+    all:
+    - field: adult_gynecological_age
+      op: ==
+      value: true
+    - field: days_since_last_period
+      op: '>'
+      value: 90
+    - field: pregnancy_excluded
+      op: ==
+      value: true
+    - field: hormonal_cycle_interference
+      op: ==
+      value: false
+    - any:
+      - field: hirsutism_excessive_hair
+        op: ==
+        value: 'yes'
+      - field: moderate_severe_cystic_acne
+        op: ==
+        value: 'yes'
+      - field: male_pattern_alopecia
+        op: ==
+        value: 'yes'
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Prolonged cycle absence exceeding 90 days combined with clinical features
+    of hyperandrogenism.
+  advice: We recommend scheduling a consultation with a doctor to evaluate your cycle
+    history and discuss inducing a withdrawal bleed.
+  doctor_may_suggest:
+  - progestogen withdrawal challenge
+  - baseline endocrine panel
+  - pelvic ultrasound
+  source:
+    name: 2023 International Evidence-based PCOS Guideline
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Recommendation 1.1.1 & 2.1.1 (Amenorrhea in PCOS)
+    number_checked: Threshold > 90 days for ovulatory dysfunction in adult women
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: PCOS-003
+  domain: pcos
+  name: Irregular cycles with clinical hirsutism (Rotterdam adult phenotype)
+  when:
+    all:
+    - field: pcos_ovulatory_dysfunction_pattern
+      op: ==
+      value: true
+    - field: hirsutism_excessive_hair
+      op: ==
+      value: 'yes'
+    - field: rapid_virilization_signs
+      op: ==
+      value: 'no'
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Irregular menstrual cycles combined with clinical hirsutism meets standard
+    adult Rotterdam diagnostic criteria for PCOS.
+  advice: Please consult a healthcare provider. Meeting both ovulatory irregularity
+    and hirsutism criteria warrants clinical evaluation and baseline metabolic health
+    checks.
+  doctor_may_suggest:
+  - serum androgen panel and fasting lipid profile
+  - fasting glucose / oral glucose tolerance test
+  - lifestyle and cycle regulation guidance
+  source:
+    name: 2023 International Evidence-based PCOS Guideline
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Recommendation 1.1 (Rotterdam adult criteria)
+    number_checked: Presence of ovulatory dysfunction + hirsutism confirms clinical
+      PCOS in adults
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: PCOS-004
+  domain: pcos
+  name: Irregular cycles with isolated severe acne or hair thinning
+  when:
+    all:
+    - field: pcos_ovulatory_dysfunction_pattern
+      op: ==
+      value: true
+    - field: hirsutism_excessive_hair
+      op: ==
+      value: 'no'
+    - field: rapid_virilization_signs
+      op: ==
+      value: 'no'
+    - any:
+      - field: moderate_severe_cystic_acne
+        op: ==
+        value: 'yes'
+      - field: male_pattern_alopecia
+        op: ==
+        value: 'yes'
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Irregular cycles with severe acne or scalp hair thinning without hirsutism
+    represents a weaker isolated clinical predictor requiring biochemical confirmation.
+  advice: We recommend discussing your symptoms with a doctor. Hormone tests are recommended
+    to determine whether androgen levels are elevated.
+  doctor_may_suggest:
+  - total and free testosterone, FAI, and DHEAS measurement
+  - dermatologic and cycle management options
+  source:
+    name: 2023 International Evidence-based PCOS Guideline
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Recommendation 1.2.1 & 1.3.2 (Isolated acne / alopecia)
+    number_checked: Isolated acne or alopecia requires biochemical hyperandrogenism
+      confirmation
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: PCOS-005
+  domain: pcos
+  name: Rapid virilization / Androgen-secreting neoplasm screen
+  when:
+    any:
+    - field: rapid_virilization_signs
+      op: ==
+      value: 'yes'
+    - field: rapid_virilization
+      op: ==
+      value: 'yes'
+  level: clinic_visit
+  needs_physical_exam: true
+  physical_exam_reason: Urgent in-person physical assessment and specialized endocrine
+    imaging to exclude virilizing ovarian or adrenal neoplasm.
+  reason: Rapid voice deepening, clitoromegaly, or sudden severe masculinization requires
+    urgent in-person medical evaluation to exclude hormone-secreting tumors.
+  advice: Please see a doctor in person promptly. Sudden or rapid virilisation requires
+    in-person specialist investigations to rule out adrenal or ovarian causes.
+  doctor_may_suggest:
+  - urgent serum total testosterone, DHEAS, and 17-OHP measurement
+  - pelvic ultrasound and adrenal CT/MRI imaging
+  - urgent endocrinology referral
+  source:
+    name: 2023 International Evidence-based PCOS Guideline / Endocrine Society
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Practice Point 1.2.9 (Rapid virilization warning sign)
+    number_checked: Rapid virilization onset excludes uncomplicated PCOS; warrants
+      urgent neoplasm exclusion
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: PCOS-006
+  domain: pcos
+  name: Regular cycles with clinical hirsutism (Idiopathic hirsutism)
+  when:
+    all:
+    - field: pcos_ovulatory_dysfunction_pattern
+      op: ==
+      value: false
+    - field: hirsutism_excessive_hair
+      op: ==
+      value: 'yes'
+    - field: rapid_virilization_signs
+      op: ==
+      value: 'no'
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Presence of hirsutism alongside regular ovulatory cycles suggestive of isolated
+    idiopathic hirsutism or mild hyperandrogenemia.
+  advice: Please book a routine doctor consultation. Discussing treatment options
+    for excess hair growth with regular cycles can help identify appropriate cosmetic
+    or medical therapies.
+  doctor_may_suggest:
+  - baseline total testosterone and DHEAS
+  - topical or anti-androgen therapy review
+  source:
+    name: 2023 International Evidence-based PCOS Guideline / Endocrine Society
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Recommendation 1.2.3 (Hirsutism with regular cycles)
+    number_checked: Isolated hirsutism with regular ovulatory menses
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: PCOS-007
+  domain: pcos
+  name: PCOS features with cardiometabolic risk markers
+  pending_clinical_decision: DEC-06
+  when:
+    all:
+    - any:
+      - field: pcos_ovulatory_dysfunction_pattern
+        op: ==
+        value: true
+      - field: hirsutism_excessive_hair
+        op: ==
+        value: 'yes'
+      - field: known_pcos
+        op: ==
+        value: 'yes'
+    - any:
+      - field: bmi
+        op: '>='
+        value: 23.0
+      - field: acanthosis_nigricans
+        op: ==
+        value: 'yes'
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: PCOS clinical features combined with elevated metabolic risk indicators
+    (elevated BMI or acanthosis nigricans).
+  advice: Please schedule a consultation with your doctor. Combining PCOS symptoms
+    with metabolic markers benefits from routine cardiovascular and glycemic screening.
+  doctor_may_suggest:
+  - fasting lipid panel and oral glucose tolerance test (OGTT)
+  - blood pressure and cardiometabolic assessment
+  source:
+    name: 2023 International Evidence-based PCOS Guideline
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Recommendation 2.2 (Cardiometabolic risk screening in PCOS)
+    number_checked: BMI cutoff >= 23 kg/m2 (Asian Indian default under DEC-06) or
+      acanthosis nigricans
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: PCOS-008
+  domain: pcos
+  name: Endometrial protection alert in prolonged amenorrhea with PCOS features
+  when:
+    all:
+    - field: days_since_last_period
+      op: '>'
+      value: 90
+    - field: pregnancy_excluded
+      op: ==
+      value: true
+    - field: hormonal_cycle_interference
+      op: ==
+      value: false
+    - any:
+      - field: known_pcos
+        op: ==
+        value: 'yes'
+      - field: pcos_ovulatory_dysfunction_pattern
+        op: ==
+        value: true
+      - field: hirsutism_excessive_hair
+        op: ==
+        value: 'yes'
+  level: teleconsultation
+  needs_physical_exam: false
+  reason: Amenorrhea exceeding 90 days in woman with PCOS features warrants discussion
+    of progestin-induced withdrawal bleeding for endometrial protection.
+  advice: Please consult your doctor. When periods are absent for over 90 days in
+    PCOS, guidelines recommend discussing a course of progestin to protect the womb
+    lining.
+  doctor_may_suggest:
+  - progestogen challenge test (e.g. medroxyprogesterone 10mg x 10-14 days)
+  - pelvic ultrasound to assess endometrial thickness
+  source:
+    name: 2023 International Evidence-based PCOS Guideline / RCOG GTG 67
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Recommendation 2.1.1 (Endometrial cancer risk & progestogen withdrawal)
+    number_checked: Threshold > 90 days for initiating progestin withdrawal in oligomenorrheic/amenorrheic
+      PCOS
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval
+- id: PCOS-009
+  domain: pcos
+  name: Normal ovulatory cycles without hyperandrogenism signs
+  when:
+    all:
+    - field: pcos_ovulatory_dysfunction_pattern
+      op: ==
+      value: false
+    - field: hirsutism_excessive_hair
+      op: ==
+      value: 'no'
+    - field: moderate_severe_cystic_acne
+      op: ==
+      value: 'no'
+    - field: male_pattern_alopecia
+      op: ==
+      value: 'no'
+    - field: known_pcos
+      op: ==
+      value: 'no'
+  level: self_care
+  needs_physical_exam: false
+  reason: Regular menstrual cycles with confirmed absence of androgen excess signs
+    excludes polycystic ovary syndrome.
+  advice: Your menstrual patterns and symptom report do not show features of polycystic
+    ovary syndrome. Routine healthy lifestyle practices are recommended.
+  doctor_may_suggest:
+  - routine general wellness follow-up
+  source:
+    name: 2023 International Evidence-based PCOS Guideline
+    url: https://www.monash.edu/medicine/mchri/pcos/guideline
+    section: Diagnostic flowchart
+    number_checked: Absence of ovulatory dysfunction and hyperandrogenism excludes
+      PCOS
+    date: '2023'
+    evidence_status: evidence_located
+    approval_status: mapping_pending_doctor_approval

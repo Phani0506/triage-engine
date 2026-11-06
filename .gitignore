@@ -37,3 +37,13 @@ htmlcov/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Secrets & Local Data
+.env
+data/*.db
+data/exports/
+not to be committed/
+"not to be committed"/
+
+
+

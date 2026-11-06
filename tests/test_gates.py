@@ -197,6 +197,48 @@ class TestSafetyGates(unittest.TestCase):
         val, _ = GateEvaluator.evaluate_d8_gate_006({"new_or_multiple_sexual_partners_past_12_months": "no"})
         self.assertFalse(val)
 
+    def test_d9_tubal_risk_history(self):
+        self.assertTrue(GateEvaluator.evaluate_d9({"prior_pid": "yes", "prior_ectopic_pregnancy": "no", "prior_tubal_or_pelvic_surgery": "no"})[0])
+        self.assertTrue(GateEvaluator.evaluate_d9({"prior_pid": "no", "prior_ectopic_pregnancy": "yes", "prior_tubal_or_pelvic_surgery": "no"})[0])
+        self.assertTrue(GateEvaluator.evaluate_d9({"prior_pid": "no", "prior_ectopic_pregnancy": "no", "prior_tubal_or_pelvic_surgery": "yes"})[0])
+        self.assertFalse(GateEvaluator.evaluate_d9({"prior_pid": "no", "prior_ectopic_pregnancy": "no", "prior_tubal_or_pelvic_surgery": "no"})[0])
+        self.assertEqual(GateEvaluator.evaluate_d9({"prior_pid": "no", "prior_ectopic_pregnancy": "no", "prior_tubal_or_pelvic_surgery": "unknown"})[0], "unknown")
+
+    def test_d12_ovulatory_dysfunction_pattern(self):
+        # Irregular cycle length (42 days) with mature axis, no contraception, pregnancy excluded -> True
+        p_irreg = {"cycle_length_days": 42}
+        self.assertTrue(GateEvaluator.evaluate_d12(p_irreg, d7=True, d5=False, d1=True)[0])
+
+        # Short cycle length (18 days) -> True
+        p_short = {"cycle_length_days": 18}
+        self.assertTrue(GateEvaluator.evaluate_d12(p_short, d7=True, d5=False, d1=True)[0])
+
+        # Cycles per year < 8 -> True
+        p_infreq = {"cycles_per_year": 6}
+        self.assertTrue(GateEvaluator.evaluate_d12(p_infreq, d7=True, d5=False, d1=True)[0])
+
+        # Days since last period > 90 -> True
+        p_gap = {"days_since_last_period": 100}
+        self.assertTrue(GateEvaluator.evaluate_d12(p_gap, d7=True, d5=False, d1=True)[0])
+
+        # Regular cycles (28 days) -> False
+        p_reg = {"cycle_length_days": 28, "cycles_per_year": 12, "days_since_last_period": 14}
+        self.assertFalse(GateEvaluator.evaluate_d12(p_reg, d7=True, d5=False, d1=True)[0])
+
+        # Gated out if pregnant (d1=False), on pill (d5=True), or immature (d7=False)
+        self.assertFalse(GateEvaluator.evaluate_d12(p_irreg, d7=False, d5=False, d1=True)[0])
+        self.assertFalse(GateEvaluator.evaluate_d12(p_irreg, d7=True, d5=True, d1=True)[0])
+        self.assertFalse(GateEvaluator.evaluate_d12(p_irreg, d7=True, d5=False, d1=False)[0])
+
+        # Unknown gate parameter -> returns unknown
+        self.assertEqual(GateEvaluator.evaluate_d12(p_irreg, d7="unknown", d5=False, d1=True)[0], "unknown")
+
+    def test_d13_endometriosis_suspicion_signal(self):
+        self.assertTrue(GateEvaluator.evaluate_d13({"period_pain_affects_daily_life": "yes", "deep_dyspareunia": "no", "cyclical_bowel_symptoms": "no", "cyclical_urinary_symptoms": "no", "chronic_pelvic_pain_6plus_months": "no"})[0])
+        self.assertTrue(GateEvaluator.evaluate_d13({"period_pain_affects_daily_life": "no", "deep_dyspareunia": "yes", "cyclical_bowel_symptoms": "no", "cyclical_urinary_symptoms": "no", "chronic_pelvic_pain_6plus_months": "no"})[0])
+        self.assertFalse(GateEvaluator.evaluate_d13({"period_pain_affects_daily_life": "no", "deep_dyspareunia": "no", "cyclical_bowel_symptoms": "no", "cyclical_urinary_symptoms": "no", "chronic_pelvic_pain_6plus_months": "no"})[0])
+        self.assertEqual(GateEvaluator.evaluate_d13({"period_pain_affects_daily_life": "no", "deep_dyspareunia": "unknown", "cyclical_bowel_symptoms": "no", "cyclical_urinary_symptoms": "no", "chronic_pelvic_pain_6plus_months": "no"})[0], "unknown")
+
 
 if __name__ == "__main__":
     unittest.main()

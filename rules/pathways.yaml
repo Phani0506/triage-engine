@@ -87,7 +87,9 @@
         value: "yes"
       if_true: PCOS-005
       if_false: S5B
-      if_unknown: PCOS-005
+      if_unknown: need_more_info
+      ask_next:
+        - rapid_virilization
 
     - id: S5B
       question: "Do you have signs of PCOS (excess facial/body hair, severe acne, male pattern alopecia)?"
@@ -227,3 +229,598 @@
       if_false: IRR-005
       if_unknown: IRR-005
 
+
+- id: PATH-PCOS-01
+  name: "PCOS & Hyperandrogenism Evaluation"
+  starts_when:
+    any:
+      - field: hirsutism_excessive_hair
+        op: "=="
+        value: "yes"
+      - field: moderate_severe_cystic_acne
+        op: "=="
+        value: "yes"
+      - field: male_pattern_alopecia
+        op: "=="
+        value: "yes"
+      - field: pcom_on_ultrasound
+        op: "=="
+        value: "yes"
+      - field: known_pcos
+        op: "=="
+        value: "yes"
+      - field: rapid_virilization_signs
+        op: "=="
+        value: "yes"
+      - field: rapid_virilization
+        op: "=="
+        value: "yes"
+  steps:
+    - id: S1
+      question: "Do you have signs of rapid voice deepening, clitoromegaly, or sudden onset severe virilisation?"
+      condition:
+        any:
+          - field: rapid_virilization_signs
+            op: "=="
+            value: "yes"
+          - field: rapid_virilization
+            op: "=="
+            value: "yes"
+      if_true: PCOS-005
+      if_false: S2
+      if_unknown: need_more_info
+      ask_next:
+        - rapid_virilization_signs
+
+    - id: S2
+      question: "Have you gone >= 90 days without a period while not pregnant or on hormonal contraception?"
+      condition:
+        all:
+          - field: days_since_last_period
+            op: ">="
+            value: 90
+          - field: pregnancy_likely
+            op: "=="
+            value: false
+          - field: hormonal_contraception_active
+            op: "=="
+            value: false
+      if_true: PCOS-008
+      if_false: S3
+      if_unknown: need_more_info
+      ask_next:
+        - days_since_last_period
+        - pregnancy_test_result
+        - contraceptive_method_type
+
+    - id: S3
+      question: "Are you under 20 years of age?"
+      condition:
+        field: age
+        op: "<"
+        value: 20
+      if_true: S4
+      if_false: S5
+      if_unknown: need_more_info
+      ask_next:
+        - age
+
+    - id: S4
+      question: "Adolescent: Do you have BOTH ovulatory dysfunction pattern AND clinical androgen excess?"
+      condition:
+        all:
+          - field: pcos_ovulatory_dysfunction_pattern
+            op: "=="
+            value: true
+          - any:
+              - field: hirsutism_excessive_hair
+                op: "=="
+                value: "yes"
+              - field: moderate_severe_cystic_acne
+                op: "=="
+                value: "yes"
+              - field: male_pattern_alopecia
+                op: "=="
+                value: "yes"
+      if_true: PCOS-004
+      if_false: S4B
+      if_unknown: need_more_info
+      ask_next:
+        - cycle_length_days
+        - hirsutism_excessive_hair
+        - moderate_severe_cystic_acne
+        - male_pattern_alopecia
+
+    - id: S4B
+      question: "Adolescent: Do you have a single PCOS feature (cycle irregularity OR androgen excess alone)?"
+      condition:
+        any:
+          - field: pcos_ovulatory_dysfunction_pattern
+            op: "=="
+            value: true
+          - field: hirsutism_excessive_hair
+            op: "=="
+            value: "yes"
+          - field: moderate_severe_cystic_acne
+            op: "=="
+            value: "yes"
+          - field: male_pattern_alopecia
+            op: "=="
+            value: "yes"
+      if_true: PCOS-007
+      if_false: S6
+      if_unknown: need_more_info
+      ask_next:
+        - cycle_length_days
+        - hirsutism_excessive_hair
+
+    - id: S5
+      question: "Adult: Do you have BOTH ovulatory dysfunction pattern AND clinical androgen excess?"
+      condition:
+        all:
+          - field: pcos_ovulatory_dysfunction_pattern
+            op: "=="
+            value: true
+          - any:
+              - field: hirsutism_excessive_hair
+                op: "=="
+                value: "yes"
+              - field: moderate_severe_cystic_acne
+                op: "=="
+                value: "yes"
+              - field: male_pattern_alopecia
+                op: "=="
+                value: "yes"
+      if_true: PCOS-003
+      if_false: S5B
+      if_unknown: need_more_info
+      ask_next:
+        - cycle_length_days
+        - hirsutism_excessive_hair
+        - moderate_severe_cystic_acne
+        - male_pattern_alopecia
+
+    - id: S5B
+      question: "Adult: Do you have ultrasound PCOM with ovulatory dysfunction OR clinical androgen excess?"
+      condition:
+        all:
+          - field: pcom_on_ultrasound
+            op: "=="
+            value: "yes"
+          - any:
+              - field: pcos_ovulatory_dysfunction_pattern
+                op: "=="
+                value: true
+              - field: hirsutism_excessive_hair
+                op: "=="
+                value: "yes"
+              - field: moderate_severe_cystic_acne
+                op: "=="
+                value: "yes"
+              - field: male_pattern_alopecia
+                op: "=="
+                value: "yes"
+      if_true: PCOS-004
+      if_false: S5C
+      if_unknown: need_more_info
+      ask_next:
+        - pcom_on_ultrasound
+        - cycle_length_days
+
+    - id: S5C
+      question: "Do you have isolated clinical hyperandrogenism signs with regular cycles?"
+      condition:
+        all:
+          - field: pcos_ovulatory_dysfunction_pattern
+            op: "=="
+            value: false
+          - any:
+              - field: hirsutism_excessive_hair
+                op: "=="
+                value: "yes"
+              - field: moderate_severe_cystic_acne
+                op: "=="
+                value: "yes"
+              - field: male_pattern_alopecia
+                op: "=="
+                value: "yes"
+      if_true: PCOS-006
+      if_false: S5D
+      if_unknown: need_more_info
+      ask_next:
+        - hirsutism_excessive_hair
+        - moderate_severe_cystic_acne
+        - male_pattern_alopecia
+
+    - id: S5D
+      question: "Do you have a prior established diagnosis of PCOS for routine management?"
+      condition:
+        field: known_pcos
+        op: "=="
+        value: "yes"
+      if_true: PCOS-007
+      if_false: S6
+      if_unknown: need_more_info
+      ask_next:
+        - known_pcos
+
+    - id: S6
+      question: "Are your menstrual cycles regular with confirmed absence of androgen excess signs?"
+      condition:
+        all:
+          - field: pcos_ovulatory_dysfunction_pattern
+            op: "=="
+            value: false
+          - field: hirsutism_excessive_hair
+            op: "=="
+            value: "no"
+          - field: moderate_severe_cystic_acne
+            op: "=="
+            value: "no"
+          - field: male_pattern_alopecia
+            op: "=="
+            value: "no"
+          - field: known_pcos
+            op: "=="
+            value: "no"
+      if_true: PCOS-009
+      if_false: need_more_info
+      if_unknown: need_more_info
+      ask_next:
+        - cycle_length_days
+        - hirsutism_excessive_hair
+
+
+- id: PATH-ENDO-01
+  name: "Endometriosis & Chronic Pelvic Pain Evaluation"
+  starts_when:
+    any:
+      - field: period_pain_affects_daily_life
+        op: "=="
+        value: "yes"
+      - field: deep_dyspareunia
+        op: "=="
+        value: "yes"
+      - field: cyclical_bowel_symptoms
+        op: "=="
+        value: "yes"
+      - field: cyclical_urinary_symptoms
+        op: "=="
+        value: "yes"
+      - field: chronic_pelvic_pain_6plus_months
+        op: "=="
+        value: "yes"
+      - field: pelvic_mass_or_fullness
+        op: "=="
+        value: "yes"
+      - field: prior_endometriosis_treatment_failed
+        op: "=="
+        value: "yes"
+      - field: known_endometriosis
+        op: "=="
+        value: "yes"
+  steps:
+    - id: S1
+      question: "Have you had pelvic pain lasting 6+ months or felt a pelvic mass/fullness?"
+      condition:
+        any:
+          - field: chronic_pelvic_pain_6plus_months
+            op: "=="
+            value: "yes"
+          - field: pelvic_mass_or_fullness
+            op: "=="
+            value: "yes"
+      if_true: ENDO-004
+      if_false: S2
+      if_unknown: need_more_info
+      ask_next:
+        - chronic_pelvic_pain_6plus_months
+        - pelvic_mass_or_fullness
+
+    - id: S2
+      question: "Have your endometriosis symptoms failed to improve with first-line medical treatment?"
+      condition:
+        field: prior_endometriosis_treatment_failed
+        op: "=="
+        value: "yes"
+      if_true: ENDO-005
+      if_false: S3
+      if_unknown: need_more_info
+      ask_next:
+        - prior_endometriosis_treatment_failed
+
+    - id: S3
+      question: "Do you have suspected endometriosis symptoms and are currently trying to conceive?"
+      condition:
+        all:
+          - field: endometriosis_suspicion_signal
+            op: "=="
+            value: true
+          - field: trying_to_conceive
+            op: "=="
+            value: "yes"
+      if_true: ENDO-006
+      if_false: S4
+      if_unknown: need_more_info
+      ask_next:
+        - trying_to_conceive
+
+    - id: S4
+      question: "Do you have 2 or more cardinal endometriosis symptoms (proposed escalation pending approval)?"
+      condition:
+        field: endometriosis_symptom_count_ge_2
+        op: "=="
+        value: true
+      if_true: ENDO-008
+      if_false: S5
+      if_unknown: need_more_info
+      ask_next:
+        - period_pain_affects_daily_life
+        - deep_dyspareunia
+        - cyclical_bowel_symptoms
+        - cyclical_urinary_symptoms
+
+    - id: S5
+      question: "Do you experience deep pain during intercourse, or bowel/urinary pain tied to your periods?"
+      condition:
+        any:
+          - field: deep_dyspareunia
+            op: "=="
+            value: "yes"
+          - field: cyclical_bowel_symptoms
+            op: "=="
+            value: "yes"
+          - field: cyclical_urinary_symptoms
+            op: "=="
+            value: "yes"
+      if_true: ENDO-003
+      if_false: S6
+      if_unknown: need_more_info
+      ask_next:
+        - deep_dyspareunia
+        - cyclical_bowel_symptoms
+        - cyclical_urinary_symptoms
+
+    - id: S6
+      question: "Do you have painful periods that interfere with your daily activities, work, or school?"
+      condition:
+        field: period_pain_affects_daily_life
+        op: "=="
+        value: "yes"
+      if_true: ENDO-002
+      if_false: S7
+      if_unknown: need_more_info
+      ask_next:
+        - period_pain_affects_daily_life
+
+    - id: S7
+      question: "Do you have an established diagnosis of endometriosis for routine follow-up?"
+      condition:
+        field: known_endometriosis
+        op: "=="
+        value: "yes"
+      if_true: ENDO-007
+      if_false: S8
+      if_unknown: need_more_info
+      ask_next:
+        - known_endometriosis
+
+    - id: S8
+      question: "Are period pain and pelvic symptoms confirmed absent?"
+      condition:
+        all:
+          - field: period_pain_affects_daily_life
+            op: "=="
+            value: "no"
+          - field: deep_dyspareunia
+            op: "=="
+            value: "no"
+          - field: cyclical_bowel_symptoms
+            op: "=="
+            value: "no"
+          - field: cyclical_urinary_symptoms
+            op: "=="
+            value: "no"
+          - field: chronic_pelvic_pain_6plus_months
+            op: "=="
+            value: "no"
+          - field: known_endometriosis
+            op: "=="
+            value: "no"
+      if_true: ENDO-001
+      if_false: need_more_info
+      if_unknown: need_more_info
+      ask_next:
+        - period_pain_affects_daily_life
+
+
+- id: PATH-FERT-01
+  name: "Fertility & Preconception Evaluation"
+  starts_when:
+    any:
+      - field: trying_to_conceive
+        op: "=="
+        value: "yes"
+      - field: miscarriage_count
+        op: ">="
+        value: 2
+      - field: second_trimester_loss
+        op: "=="
+        value: "yes"
+  steps:
+    - id: S1
+      question: "Have you experienced 2 or more miscarriages or a second-trimester pregnancy loss?"
+      condition:
+        any:
+          - field: miscarriage_count
+            op: ">="
+            value: 2
+          - field: second_trimester_loss
+            op: "=="
+            value: "yes"
+      if_true: FERT-007
+      if_false: S2
+      if_unknown: need_more_info
+      ask_next:
+        - miscarriage_count
+        - second_trimester_loss
+
+    - id: S2
+      question: "Do you have a history of pelvic infection (PID), ectopic pregnancy, or pelvic/tubal surgery?"
+      condition:
+        field: tubal_risk_history
+        op: "=="
+        value: true
+      if_true: FERT-006
+      if_false: S2B
+      if_unknown: need_more_info
+      ask_next:
+        - prior_pid
+        - prior_ectopic_pregnancy
+        - prior_tubal_or_pelvic_surgery
+
+    - id: S2B
+      question: "Are you unable to have penetrative vaginal intercourse?"
+      condition:
+        field: unable_to_have_penetrative_intercourse
+        op: "=="
+        value: "yes"
+      if_true: FERT-008
+      if_false: S2C
+      if_unknown: need_more_info
+      ask_next:
+        - unable_to_have_penetrative_intercourse
+
+    - id: S2C
+      question: "Do you have disabling period pain or signs of suspected endometriosis while trying to conceive?"
+      condition:
+        field: endometriosis_suspicion_signal
+        op: "=="
+        value: true
+      if_true: ENDO-006
+      if_false: S3
+      if_unknown: need_more_info
+      ask_next:
+        - period_pain_affects_daily_life
+        - deep_dyspareunia
+        - cyclical_bowel_symptoms
+        - cyclical_urinary_symptoms
+        - chronic_pelvic_pain_6plus_months
+
+    - id: S3
+      question: "Do you have irregular or infrequent menstrual cycles while trying to conceive?"
+      condition:
+        field: pcos_ovulatory_dysfunction_pattern
+        op: "=="
+        value: true
+      if_true: FERT-005
+      if_false: S4
+      if_unknown: need_more_info
+      ask_next:
+        - cycle_length_days
+        - days_since_last_period
+        - menarche_age
+
+    - id: S4
+      question: "Are you aged under 35 and have been trying to conceive for 12 months or longer?"
+      condition:
+        all:
+          - field: age
+            op: "<"
+            value: 35
+          - field: trying_duration_months
+            op: ">="
+            value: 12
+      if_true: FERT-002
+      if_false: S4B
+      if_unknown: need_more_info
+      ask_next:
+        - age
+        - trying_duration_months
+
+    - id: S4B
+      question: "Are you aged 35 or older and have been trying to conceive for 6 months or longer?"
+      condition:
+        all:
+          - field: age
+            op: ">="
+            value: 35
+          - field: trying_duration_months
+            op: ">="
+            value: 6
+      if_true: FERT-003
+      if_false: S4C
+      if_unknown: need_more_info
+      ask_next:
+        - age
+        - trying_duration_months
+
+    - id: S4C
+      question: "Are you aged 35 and trying for under 6 months (pending clinical decision DEC-09)?"
+      condition:
+        all:
+          - field: age
+            op: ">="
+            value: 35
+          - field: age
+            op: "<"
+            value: 36
+          - field: trying_duration_months
+            op: "<"
+            value: 6
+      if_true: PATH-FERT-01-TERM-AGE35
+      terminal_type: pending_decision
+      decision: DEC-09
+      if_false: S4D
+      if_unknown: need_more_info
+      ask_next:
+        - age
+        - trying_duration_months
+
+    - id: S4D
+      question: "Are you aged 36 to 40 and trying for under 6 months (proposed earlier consultation)?"
+      condition:
+        all:
+          - field: age
+            op: ">="
+            value: 36
+          - field: age
+            op: "<="
+            value: 40
+          - field: trying_duration_months
+            op: "<"
+            value: 6
+      if_true: FERT-004
+      if_false: S5
+      if_unknown: need_more_info
+      ask_next:
+        - age
+        - trying_duration_months
+
+    - id: S5
+      question: "Are all fertility risk factors confirmed negative with normal conception timeline?"
+      condition:
+        all:
+          - field: trying_to_conceive
+            op: "=="
+            value: "yes"
+          - field: age
+            op: "<"
+            value: 35
+          - field: trying_duration_months
+            op: "<"
+            value: 12
+          - field: pcos_ovulatory_dysfunction_pattern
+            op: "=="
+            value: false
+          - field: tubal_risk_history
+            op: "=="
+            value: false
+          - field: unable_to_have_penetrative_intercourse
+            op: "=="
+            value: "no"
+      if_true: FERT-001
+      if_false: need_more_info
+      if_unknown: need_more_info
+      ask_next:
+        - trying_duration_months

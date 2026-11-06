@@ -1,0 +1,54 @@
+flowchart TD
+    classDef red fill:#dc2626,stroke:#991b1b,stroke-width:2px,color:#fff;
+    classDef amber fill:#d97706,stroke:#92400e,stroke-width:2px,color:#fff;
+    classDef yellow fill:#ca8a04,stroke:#854d0e,stroke-width:2px,color:#fff;
+    classDef green fill:#16a34a,stroke:#166534,stroke-width:2px,color:#fff;
+    classDef grey fill:#475569,stroke:#1e293b,stroke-width:2px,color:#fff;
+    classDef decision fill:#f8fafc,stroke:#334155,stroke-width:2px,color:#0f172a;
+
+    START(["Patient Presents with PCOS / Hyperandrogenism Symptoms"]):::decision
+    S1{"S1: Rapid Virilisation Signs?<br/>(voice deepening, clitoromegaly)"}:::decision
+    S2{"S2: Amenorrhea >= 90 days?<br/>(non-pregnant, no contraception)"}:::decision
+    S3{"S3: Age Cohort?<br/>(Age < 20 years)"}:::decision
+    S4{"S4: Adolescent Diagnostic Criteria?<br/>(Both Ovulatory Dysfunction & Androgen Excess)"}:::decision
+    S4B{"S4B: Adolescent Single Feature?<br/>(Cycle Irregularity OR Androgen Excess Alone)"}:::decision
+    S5{"S5: Adult Clinical Diagnostic Criteria?<br/>(Both Ovulatory Dysfunction & Androgen Excess)"}:::decision
+    S5B{"S5B: Adult Ultrasound Criteria?<br/>(PCOM on Ultrasound + Ovulatory or Androgen Sign)"}:::decision
+    S5C{"S5C: Isolated Hyperandrogenism?<br/>(Excess hair, cystic acne, or alopecia with regular cycles)"}:::decision
+    S5D{"S5D: Prior Established PCOS Diagnosis?<br/>(Routine monitoring & metabolic screening)"}:::decision
+    S6{"S6: Normal Ovulatory Cycles & No Androgen Excess?"}:::decision
+
+    T_RED["PCOS-001 (Emergency)<br/>Immediate Oncology/Endocrine Exclusion"]:::red
+    T_PCOS5["PCOS-005 (Clinic Visit / Amber)<br/>Endometrial Protection Assessment"]:::amber
+    T_PCOS4["PCOS-004 (Teleconsultation / Yellow)<br/>Adolescent Suspected PCOS"]:::yellow
+    T_PCOS7["PCOS-007 (Teleconsultation / Yellow)<br/>Adolescent At-Risk of PCOS (DEC-06)"]:::yellow
+    T_PCOS2["PCOS-002 (Teleconsultation / Yellow)<br/>Adult Suspected PCOS"]:::yellow
+    T_PCOS3["PCOS-003 (Teleconsultation / Yellow)<br/>Adult PCOS with Ultrasound PCOM"]:::yellow
+    T_PCOS6["PCOS-006 (Teleconsultation / Yellow)<br/>Isolated Clinical Hyperandrogenism"]:::yellow
+    T_PCOS8["PCOS-008 (Teleconsultation / Yellow)<br/>PCOS Routine Management"]:::yellow
+    T_GREEN["PCOS-009 (Self-Care / Green)<br/>Normal Cycle, No Androgen Signs"]:::green
+    T_MORE["Need More Information<br/>(Strict Green Lockout / Missing Data)"]:::grey
+
+    START --> S1
+    S1 -- Yes --> T_RED
+    S1 -- No --> S2
+    S1 -- Unknown --> T_MORE
+    S2 -- Yes --> T_PCOS5
+    S2 -- No --> S3
+    S2 -- Unknown --> T_MORE
+    S3 -- Adolescent (<20) --> S4
+    S3 -- Adult (>=20) --> S5
+    S4 -- Yes --> T_PCOS4
+    S4 -- No --> S4B
+    S4B -- Yes --> T_PCOS7
+    S4B -- No --> S6
+    S5 -- Yes --> T_PCOS2
+    S5 -- No --> S5B
+    S5B -- Yes --> T_PCOS3
+    S5B -- No --> S5C
+    S5C -- Yes --> T_PCOS6
+    S5C -- No --> S5D
+    S5D -- Yes --> T_PCOS8
+    S5D -- No --> S6
+    S6 -- All Negative Confirmed --> T_GREEN
+    S6 -- Missing / Incomplete --> T_MORE

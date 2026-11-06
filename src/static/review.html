@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Women's Health Triage Review</title>
+  <link rel="stylesheet" href="/review.css">
+</head>
+<body>
+  <div class="safety-banner">
+    ⚠️ <strong>Synthetic cases only</strong> — Do not enter real patient data.
+  </div>
+
+  <header class="top-bar">
+    <div class="doctor-badge">
+      <span class="avatar-icon">🩺</span>
+      <span id="doctor-display-name">Loading...</span>
+      <button id="btn-change-name" class="btn-text-small">Change</button>
+    </div>
+    <div class="batch-badge" id="batch-display">Batch 1</div>
+  </header>
+
+  <div class="progress-container">
+    <div class="progress-labels">
+      <span id="progress-text">Case 1 of 18</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
+    </div>
+  </div>
+
+  <main class="review-card">
+    <div id="loading-state" class="center-content">
+      <div class="spinner"></div>
+      <p>Loading patient case...</p>
+    </div>
+
+    <div id="completion-state" class="center-content hidden">
+      <div class="done-icon">🎉</div>
+      <h2>Batch Completed!</h2>
+      <p>You have reviewed all cases in this batch.</p>
+      <p>Thank you for contributing your clinical expertise to calibrate the triage engine.</p>
+      <button id="btn-restart-batch" class="btn btn-secondary">Review Batch Again</button>
+    </div>
+
+    <div id="case-content" class="hidden">
+      <div class="case-header">
+        <span class="case-id" id="case-id-badge">BATCH1-001</span>
+        <span class="topic-tag" id="case-topic-badge">PCOS</span>
+      </div>
+
+      <!-- 3-4 Line Clinical Summary -->
+      <section class="clinical-summary">
+        <h3>Patient Presentation</h3>
+        <ul id="summary-lines-list" class="summary-bullets">
+          <!-- Filled by JS -->
+        </ul>
+      </section>
+
+      <!-- Expandable Structured Inputs -->
+      <details class="structured-inputs-drawer">
+        <summary>View Full Structured Inputs (P1–P72)</summary>
+        <div id="raw-inputs-content" class="raw-inputs-grid">
+          <!-- Filled by JS -->
+        </div>
+      </details>
+
+      <hr class="divider">
+
+      <!-- STEP 1: Blind Urgency Selection -->
+      <section id="assessment-step" class="assessment-section">
+        <div class="urgency-scale-label">
+          <span>Least urgent</span>
+          <span class="scale-arrow">──────────►</span>
+          <span>Most urgent</span>
+        </div>
+
+        <div class="urgency-buttons-grid">
+          <button type="button" class="btn-urgency btn-green" data-level="self_care" data-colour="green">
+            <span class="btn-icon">🟢</span>
+            <span class="btn-label">Green</span>
+            <span class="btn-sub">Self-care</span>
+          </button>
+          <button type="button" class="btn-urgency btn-yellow" data-level="teleconsultation" data-colour="yellow">
+            <span class="btn-icon">🟡</span>
+            <span class="btn-label">Yellow</span>
+            <span class="btn-sub">Teleconsultation</span>
+          </button>
+          <button type="button" class="btn-urgency btn-amber" data-level="clinic_visit" data-colour="amber">
+            <span class="btn-icon">🟠</span>
+            <span class="btn-label">Amber</span>
+            <span class="btn-sub">Clinic visit</span>
+          </button>
+          <button type="button" class="btn-urgency btn-red" data-level="emergency" data-colour="red">
+            <span class="btn-icon">🔴</span>
+            <span class="btn-label">Red</span>
+            <span class="btn-sub">Emergency</span>
+          </button>
+        </div>
+
+        <div class="input-group">
+          <label for="doctor-notes">Initial Clinical Notes (Optional):</label>
+          <textarea id="doctor-notes" rows="2" placeholder="e.g., Needs ultrasound and bimanual exam before initiating hormones..."></textarea>
+        </div>
+
+        <button id="btn-submit-assessment" class="btn btn-primary" disabled>
+          Submit Assessment & Reveal Engine Result
+        </button>
+      </section>
+
+      <!-- STEP 2: Engine Reveal & Disagreement Handling -->
+      <section id="reveal-step" class="reveal-section hidden">
+        <div id="agreement-banner" class="agreement-banner">
+          <!-- Filled by JS -->
+        </div>
+
+        <div class="engine-results-box">
+          <div class="engine-badge-row">
+            <span class="label">Engine Assigned:</span>
+            <span id="engine-urgency-badge" class="urgency-badge">Yellow (Teleconsultation)</span>
+          </div>
+
+          <div class="engine-reasons">
+            <h4>Clinical Rationale & Rules Fired:</h4>
+            <ul id="engine-reasons-list"></ul>
+          </div>
+
+          <div class="engine-advice">
+            <h4>Patient Advice:</h4>
+            <p id="engine-advice-text"></p>
+          </div>
+
+          <div id="engine-tests-box" class="engine-tests">
+            <h4>Doctor May Suggest:</h4>
+            <ul id="engine-tests-list"></ul>
+          </div>
+        </div>
+
+        <!-- Disagreement Questions (Shown only when engine != doctor) -->
+        <div id="disagreement-form" class="disagreement-box hidden">
+          <h4>Clinical Disagreement Feedback</h4>
+
+          <div class="input-group">
+            <label>Who is right in this scenario?</label>
+            <div class="radio-group">
+              <label><input type="radio" name="verdict" value="doctor_is_right" checked> Doctor is right</label>
+              <label><input type="radio" name="verdict" value="engine_is_right"> Engine is right</label>
+              <label><input type="radio" name="verdict" value="both_fine"> Both are acceptable</label>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>What is the main problem? (Select all that apply)</label>
+            <div class="chips-container" id="problem-chips-container">
+              <label class="chip"><input type="checkbox" value="Level too high"> Level too high</label>
+              <label class="chip"><input type="checkbox" value="Level too low" id="chip-level-too-low"> Level too low</label>
+              <label class="chip"><input type="checkbox" value="Missing a question"> Missing a question</label>
+              <label class="chip"><input type="checkbox" value="Wrong advice"> Wrong advice</label>
+              <label class="chip"><input type="checkbox" value="Reason unclear"> Reason unclear</label>
+              <label class="chip"><input type="checkbox" value="Rule is wrong"> Rule is wrong</label>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label id="disagreement-prompt-label">Why did you choose your assessment?</label>
+            <textarea id="feedback-text" rows="3" placeholder="e.g., Patient has signs of peritonitis and must be evaluated in person immediately..."></textarea>
+          </div>
+        </div>
+
+        <button id="btn-next-case" class="btn btn-primary">
+          Next Case →
+        </button>
+      </section>
+    </div>
+  </main>
+
+  <script src="/review.js"></script>
+</body>
+</html>
+

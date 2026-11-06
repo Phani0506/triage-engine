@@ -1,0 +1,39 @@
+flowchart TD
+    classDef red fill:#dc2626,stroke:#991b1b,stroke-width:2px,color:#fff;
+    classDef amber fill:#d97706,stroke:#92400e,stroke-width:2px,color:#fff;
+    classDef yellow fill:#ca8a04,stroke:#854d0e,stroke-width:2px,color:#fff;
+    classDef green fill:#16a34a,stroke:#166534,stroke-width:2px,color:#fff;
+    classDef grey fill:#475569,stroke:#1e293b,stroke-width:2px,color:#fff;
+    classDef decision fill:#f8fafc,stroke:#334155,stroke-width:2px,color:#0f172a;
+
+    START(["Patient Presents with Menstrual Cycle Irregularity / Abnormal Bleeding"]):::decision
+    RF{"Red Flag Triage Check:<br/>Hemodynamic instability, acute abdomen, soaking hourly?"}:::decision
+    AMEN{"Amenorrhea Gate:<br/>Days Since Last Period > 90 OR Never Menstruated?"}:::decision
+    HMB{"Abnormal Bleeding Gate:<br/>Heavy flow, duration > 8 days, or intermenstrual bleeding?"}:::decision
+    FIGO{"FIGO Cycle Parameters:<br/>Cycle length 24-38 days, variation <= 7-9 days, normal duration?"}:::decision
+
+    PATH_AMEN["PATH-AMEN-01 (Amenorrhea Pathway)<br/>Primary/Secondary Amenorrhea, Pregnancy Exclusion, FHA"]:::decision
+    PATH_HMB["PATH-HMB-01 (Heavy/Abnormal Bleeding Pathway)<br/>PCB, Recurrent IMB, Symptomatic Anemia, Flooding"]:::decision
+
+    T_RED["Emergency Red Flags (RF-001..RF-008)<br/>Immediate In-Person Emergency Evaluation"]:::red
+    T_AMBER["Clinic Visit (Amber)<br/>IRR-007 (IMB 2+ cycles), IRR-007A, IRR-008, IRR-009, IRR-010"]:::amber
+    T_YELLOW["Teleconsultation (Yellow)<br/>IRR-002, IRR-003, IRR-004, IRR-005, IRR-006, IRR-011"]:::yellow
+    T_GREEN["IRR-001 (Self-Care / Green)<br/>Normal FIGO Menstrual Regularity"]:::green
+    T_MORE["Need More Information<br/>(Strict Green Lockout & Pregnancy Gating)"]:::grey
+
+    START --> RF
+    RF -- Red Flag Positive --> T_RED
+    RF -- Cleared --> AMEN
+    AMEN -- Yes --> PATH_AMEN
+    AMEN -- No --> HMB
+    HMB -- Yes --> PATH_HMB
+    HMB -- No --> FIGO
+    FIGO -- FIGO Normal Verified --> T_GREEN
+    FIGO -- FIGO Irregular Length (<24 or >38) --> T_YELLOW
+    FIGO -- Missing Parameters --> T_MORE
+    PATH_AMEN --> T_AMBER
+    PATH_AMEN --> T_YELLOW
+    PATH_AMEN --> T_MORE
+    PATH_HMB --> T_AMBER
+    PATH_HMB --> T_YELLOW
+    PATH_HMB --> T_MORE
