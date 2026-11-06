@@ -1,0 +1,229 @@
+# ==============================================================================
+# Clinical Decision Pathways for Women's Health Risk Triage (Day 3 Scope)
+# Topics: PATH-AMEN-01 (Amenorrhea & Missed Periods), PATH-HMB-01 (Heavy/Abnormal Bleeding)
+# ==============================================================================
+
+- id: PATH-AMEN-01
+  name: "Amenorrhea & Missed Periods (> 90 days or never menstruated)"
+  starts_when:
+    any:
+      - field: days_since_last_period
+        op: ">"
+        value: 90
+      - field: never_had_period
+        op: "=="
+        value: "yes"
+  steps:
+    - id: S1
+      question: "Have you ever had a natural menstrual period in your life?"
+      condition:
+        field: never_had_period
+        op: "=="
+        value: "yes"
+      if_true: IRR-011
+      if_false: S2
+      if_unknown: need_more_info
+      ask_next:
+        - never_had_period
+
+    - id: S2
+      question: "Is there any chance you could be pregnant, and was a conclusive test performed?"
+      condition:
+        field: pregnancy_excluded
+        op: "=="
+        value: true
+      if_true: S3
+      if_false: GATE-001
+      if_unknown: need_more_info
+      ask_next:
+        - pregnancy_test_result
+        - pregnancy_possible
+        - unprotected_sex_in_last_12_months
+
+    - id: S3
+      question: "Can you feel a lump or swelling in your lower belly, or do you have ongoing lower belly pain or pressure?"
+      condition:
+        any:
+          - field: palpable_pelvic_lump
+            op: "=="
+            value: "yes"
+          - field: persistent_pelvic_pain_or_pressure
+            op: "=="
+            value: "yes"
+      if_true: IRR-010
+      if_false: S4
+      if_unknown: IRR-010
+
+    - id: S4
+      question: "Are you exclusively breastfeeding an infant under 6 months (LAM)?"
+      condition:
+        field: physiological_lactational_amenorrhea
+        op: "=="
+        value: true
+      if_true: IRR-004
+      if_false: S4B
+      if_unknown: need_more_info
+      ask_next:
+        - infant_age_months
+        - exclusively_breastfeeding
+
+    - id: S4B
+      question: "Are you currently using hormonal contraception or within 3-month washout?"
+      condition:
+        field: hormonal_cycle_interference
+        op: "=="
+        value: true
+      if_true: IRR-012
+      if_false: S5
+      if_unknown: need_more_info
+      ask_next:
+        - contraceptive_method_type
+
+    - id: S5
+      question: "Do you have rapid voice deepening or signs of virilizing tumor?"
+      condition:
+        field: rapid_virilization
+        op: "=="
+        value: "yes"
+      if_true: PCOS-005
+      if_false: S5B
+      if_unknown: PCOS-005
+
+    - id: S5B
+      question: "Do you have signs of PCOS (excess facial/body hair, severe acne, male pattern alopecia)?"
+      condition:
+        any:
+          - field: hirsutism_excessive_hair
+            op: "=="
+            value: "yes"
+          - field: moderate_severe_cystic_acne
+            op: "=="
+            value: "yes"
+          - field: male_pattern_alopecia
+            op: "=="
+            value: "yes"
+      if_true: PATH-PCOS-01
+      deferred_pathway: PATH-PCOS-01
+      if_false: S5C
+      if_unknown: need_more_info
+
+    - id: S5C
+      question: "Have you had significant recent weight loss, intensive daily exercise, or BMI < 18.5?"
+      condition:
+        any:
+          - field: significant_recent_weight_loss_or_intensive_exercise
+            op: "=="
+            value: "yes"
+          - field: bmi
+            op: "<"
+            value: 18.5
+      if_true: IRR-006
+      if_false: IRR-004
+      if_unknown: IRR-004
+
+
+- id: PATH-HMB-01
+  name: "Heavy & Abnormal Menstrual Bleeding"
+  starts_when:
+    any:
+      - field: self_reported_heavy_flow
+        op: "=="
+        value: "yes"
+      - field: bleeding_duration_days
+        op: ">"
+        value: 8
+      - field: intermenstrual_bleeding_cycles
+        op: ">="
+        value: 1
+      - field: postcoital_bleeding
+        op: "=="
+        value: "yes"
+  steps:
+    - id: S1
+      question: "Are you experiencing signs of severe hemodynamic instability (fainting, collapse, racing heart)?"
+      condition:
+        field: reported_hemodynamic_instability
+        op: "=="
+        value: true
+      if_true: RF-003
+      if_false: S1B
+      if_unknown: need_more_info
+      ask_next:
+        - fainting_or_near_fainting
+        - racing_heartbeat_at_rest
+
+    - id: S1B
+      question: "Are you soaking through a pad/tampon every hour for 2+ hours or passing large clots (> 2.5 cm)?"
+      condition:
+        any:
+          - field: soaking_pad_hourly_2plus_hours
+            op: "=="
+            value: "yes"
+          - field: passing_large_clots
+            op: "=="
+            value: "yes"
+      if_true: IRR-007A
+      if_false: S2
+      if_unknown: need_more_info
+      ask_next:
+        - soaking_pad_hourly_2plus_hours
+        - passing_large_clots
+
+    - id: S2
+      question: "Have you noticed any vaginal bleeding during or after sexual intercourse?"
+      condition:
+        field: postcoital_bleeding
+        op: "=="
+        value: "yes"
+      if_true: IRR-008
+      if_false: S3
+      if_unknown: IRR-008
+
+    - id: S3
+      question: "Have you had bleeding between periods for 2+ cycles, ongoing pelvic pain/pressure, or a palpable lump?"
+      condition:
+        any:
+          - field: intermenstrual_bleeding_cycles
+            op: ">="
+            value: 2
+          - field: persistent_pelvic_pain_or_pressure
+            op: "=="
+            value: "yes"
+          - field: palpable_pelvic_lump
+            op: "=="
+            value: "yes"
+      if_true: IRR-007
+      if_false: S4
+      if_unknown: IRR-007
+
+    - id: S4
+      question: "Are you experiencing symptoms of severe anemia (unusual fatigue, pallor, shortness of breath)?"
+      condition:
+        any:
+          - field: unusual_fatigue
+            op: "=="
+            value: "yes"
+          - field: noticeable_pallor
+            op: "=="
+            value: "yes"
+          - field: breathless_on_mild_exertion
+            op: "=="
+            value: "yes"
+      if_true: IRR-009
+      if_false: S4B
+      if_unknown: IRR-009
+
+    - id: S4B
+      question: "Checking isolated single-cycle IMB vs uncomplicated HMB"
+      condition:
+        all:
+          - field: intermenstrual_bleeding_cycles
+            op: "=="
+            value: 1
+          - field: self_reported_heavy_flow
+            op: "=="
+            value: "no"
+      if_true: PATH-HMB-01-TERM-IMB1
+      if_false: IRR-005
+      if_unknown: IRR-005
+

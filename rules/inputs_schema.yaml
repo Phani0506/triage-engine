@@ -1,0 +1,716 @@
+version: 0.2-alpha-audited-v4
+audit_date: '2026-11-03'
+governance:
+  target_population: Women aged 18 to 40 years
+  clinical_context: Indian healthcare setting with international evidence base (NICE, FIGO, ACOG, CDC, RCOG, ESHRE, ASRM,
+    ICMR, FOGSI)
+  triage_hierarchy: Green (Self-Care + Safety Net) < Yellow (Teleconsultation) < Amber (In-Person Clinic Visit / Specialist)
+    < Red (Immediate Emergency A&E)
+  unknown_answer_policy: Missing/unknown never counts as yes/no. Critical or gating unknowns return need_more_info or default
+    to safer branch. Green strictly blocked if unknown.
+summary:
+  total_variables: 86
+  patient_inputs_count: 72
+  derived_variables_count: 14
+patient_inputs:
+- id: P1
+  name: age
+  category: Demographics
+  type: number (years)
+  allowed_values: 18 to 40 (unknown)
+  unknown_handling: need_more_info; blocks triage if missing
+  references: FERT-001, FERT-002, FERT-003, FERT-004, IRR-011, D2, D7
+  description: Patient age in completed years; strictly scoped to 18-40.
+- id: P2
+  name: never_had_period
+  category: Menstrual History
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info in amenorrhea; ask P2
+  references: IRR-011, PATH-AMEN-01 (S1), D7
+  description: 'Primary amenorrhea flag: patient has never had a spontaneous menstrual period.'
+- id: P3
+  name: menarche_age
+  category: Menstrual History
+  type: number (years)
+  allowed_values: 8 to 25 (unknown)
+  unknown_handling: Assume >= 3 yrs post-menarche if P1 >= 21; else ask
+  references: D7, 2023 PCOS Guideline
+  description: Age at first period; used to establish adult gynecological age (>= 3 years post-menarche).
+- id: P4
+  name: pregnancy_possible
+  category: Pregnancy & Sexual History
+  type: choice
+  allowed_values: '[yes, no, not_sure]'
+  unknown_handling: not_sure treated as possible (D1 = unknown -> need_more_info)
+  references: GATE-001, D1, all pathways
+  description: Patient belief regarding current pregnancy possibility based on sexual exposure.
+- id: P5
+  name: unprotected_sex_in_last_12_months
+  category: Pregnancy & Sexual History
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: unknown treated as possible (D1 = unknown)
+  references: GATE-001, D1
+  description: Unprotected intercourse or barrier/contraceptive failure in last 12 months.
+- id: P6
+  name: days_since_last_unprotected_sex
+  category: Pregnancy & Sexual History
+  type: number (days)
+  allowed_values: 0 to 365 (unknown)
+  unknown_handling: Sets D10 = unknown -> need_more_info
+  references: GATE-001, D1, D10
+  description: Days elapsed since the most recent episode of unprotected intercourse.
+- id: P7
+  name: pregnancy_test_result
+  category: Pregnancy & Sexual History
+  type: choice
+  allowed_values: '[not_done, negative, positive, unknown]'
+  unknown_handling: Sets D1 = unknown -> need_more_info
+  references: GATE-001, RF-001, RF-006, EP-001, D1
+  description: Result of most recent home urine pregnancy test.
+- id: P8
+  name: pregnancy_test_days_ago
+  category: Pregnancy & Sexual History
+  type: number (days)
+  allowed_values: 0 to 365 (unknown)
+  unknown_handling: Sets D10 = unknown -> need_more_info
+  references: GATE-001, D1, D10
+  description: Days elapsed since the pregnancy test was performed.
+- id: P9
+  name: contraceptive_method_type
+  category: Contraception History
+  type: choice
+  allowed_values: '[none, cocp_combined_pill, progestin_pill, progestin_implant, hormonal_iud, copper_iud, injection_depo,
+    barrier_or_other, unknown]'
+  unknown_handling: Sets D3/D4/D5 = unknown -> need_more_info
+  references: GATE-003A, GATE-003B, IRR-012, D3, D4, D5
+  description: Current contraceptive method in use.
+- id: P10
+  name: contraception_duration_months
+  category: Contraception History
+  type: number (months)
+  allowed_values: 0 to 240 (unknown)
+  unknown_handling: Treated conservatively as > 3 months (Yellow)
+  references: IRR-012, PATH-AMEN-01 (S4)
+  description: Duration of current contraceptive method use in months.
+- id: P11
+  name: stopped_cocp_within_3_months
+  category: Contraception History
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Sets D3 = unknown -> need_more_info in PCOS
+  references: GATE-003A, D3, PATH-PCOS-01
+  description: Combined oral contraceptive pill stopped within the preceding 3 months.
+- id: P12
+  name: unscheduled_contraceptive_bleeding
+  category: Contraception History
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info
+  references: IRR-012
+  description: Unexpected spotting or bleeding while on hormonal contraception.
+- id: P13
+  name: new_or_multiple_sexual_partners_past_12_months
+  category: Sexual Health & STI Risk
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: unknown sets D8 = unknown; no automatic escalation (symptom rules decide)
+  references: GATE-006, D8
+  description: Behavioral risk marker for sexually transmitted infection.
+- id: P14
+  name: cervical_screening_up_to_date
+  category: Preventive Care
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: unknown treated as not up to date (Amber in IRR-012)
+  references: IRR-008, IRR-012
+  description: Patient status regarding age-appropriate cervical screening (Pap smear/HPV).
+- id: P15
+  name: postpartum_delivery_timing
+  category: Obstetric History
+  type: choice
+  allowed_values: '[no, within_6_weeks, 6_to_12_weeks, 12_weeks_to_under_6_months, 12_weeks_to_6_months, exactly_6_to_12_months, 6_to_12_months, more_than_12_months_ago, unknown]'
+  unknown_handling: need_more_info
+  references: RF-008, GATE-004, D6, PATH-AMEN-01
+  description: Timing of most recent childbirth delivery (distinguishes secondary PPH window <= 12 weeks from formal LAM <
+    6 months and extended postpartum).
+- id: P16
+  name: exclusively_breastfeeding
+  category: Obstetric History
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info if postpartum
+  references: GATE-004, D6, PATH-AMEN-01
+  description: 'Lactation status: exclusive or nearly exclusive breastfeeding day and night without formula/solids.'
+- id: P17
+  name: trying_to_conceive
+  category: Fertility Intent
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info in fertility/endo pathways
+  references: FERT-001 to FERT-008, ENDO-006, PATH-FERT-01
+  description: Active intention and effort to achieve pregnancy.
+- id: P18
+  name: trying_duration_months
+  category: Fertility Intent
+  type: number (months)
+  allowed_values: 0 to 120 (unknown)
+  unknown_handling: need_more_info in PATH-FERT-01
+  references: FERT-001, FERT-002, FERT-003, FERT-004, PATH-FERT-01
+  description: Duration of regular unprotected intercourse while trying to conceive.
+- id: P19
+  name: acute_severe_pelvic_pain
+  category: Acute Symptoms & Red Flags
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Never Green; ask/escalate to urgent emergency evaluation
+  references: RF-001, RF-007, RF-009
+  description: Sudden, severe, or unbearable lower abdominal or pelvic pain.
+- id: P20
+  name: pelvic_pain_any
+  category: Acute Symptoms & Red Flags
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info
+  references: RF-002, RF-004, RF-005, RF-006
+  description: Any lower belly or pelvic pain or cramping.
+- id: P21
+  name: shoulder_tip_pain
+  category: Acute Symptoms & Red Flags
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info if pregnancy possible
+  references: RF-002
+  description: Unexplained pain at the tip of the shoulder (diaphragmatic irritation marker).
+- id: P22
+  name: sudden_pain_with_vomiting
+  category: Acute Symptoms & Red Flags
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info if P19 == yes
+  references: RF-007
+  description: Pelvic pain starting abruptly with nausea or vomiting (ovarian torsion marker).
+- id: P23
+  name: vaginal_bleeding_now
+  category: Acute Symptoms & Red Flags
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info
+  references: RF-002, RF-004, RF-006, EP-001
+  description: Current active vaginal bleeding or spotting.
+- id: P24
+  name: soaking_pad_hourly_2plus_hours
+  category: Acute Bleeding Severity
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info in PATH-HMB-01
+  references: RF-003, IRR-007A, PATH-HMB-01
+  description: Bleeding soaking >= 1 pad or tampon per hour for >= 2 consecutive hours.
+- id: P25
+  name: fainting_or_near_fainting
+  category: Hemodynamic Stability
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: need_more_info in bleeding/pain; sets D11 = true if yes
+  references: RF-003, RF-004, D11
+  description: Syncope, near-syncope, or severe orthostatic dizziness upon standing.
+- id: P26
+  name: racing_heartbeat_at_rest
+  category: Hemodynamic Stability
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Acts as instability proxy D11 when acute bleeding/pain is present
+  references: RF-003, RF-004, D11
+  description: 'Resting tachycardia proxy: heart racing or pounding while sitting or lying still.'
+- id: P27
+  name: passing_large_clots
+  category: Acute Bleeding Severity
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Escalates to IRR-007A (Amber)
+  references: IRR-007A, PATH-HMB-01
+  description: Passing blood clots larger than a coin (> 2.5 cm).
+- id: P28
+  name: fever_over_38_5c
+  category: Infection & Sepsis Severity
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Ask P29/P30; sets D14 = true if yes
+  references: RF-005, D14
+  description: "Measured oral or tympanic temperature exceeding 38.5\xB0C (101\xB0F)."
+- id: P29
+  name: feels_feverish_or_has_chills
+  category: Infection & Sepsis Severity
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Routes to IRR-013 (Amber) with pelvic pain
+  references: IRR-013
+  description: Subjective feverish sensation, shivers, or rigors.
+- id: P30
+  name: feels_severely_unwell
+  category: Infection & Sepsis Severity
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Sets D14 = true (Red with pelvic pain)
+  references: RF-005, D14
+  description: 'Severe systemic toxicity proxy: feeling too sick to stand, confused, or prostrate.'
+- id: P31
+  name: persistent_vomiting_cannot_keep_fluids_down
+  category: Infection & Sepsis Severity
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Sets D14 = true (Red with pelvic pain)
+  references: RF-005, D14
+  description: Intractable vomiting where oral fluids or antibiotic tablets cannot be kept down.
+- id: P32
+  name: foul_smelling_or_purulent_discharge
+  category: Infection & Pelvic Health
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Routes to IRR-013 (Amber) with pelvic pain
+  references: IRR-013
+  description: Purulent, yellow-green, or foul-smelling vaginal discharge.
+- id: P33
+  name: pelvic_infection_treated_no_improvement_72h
+  category: Infection & Pelvic Health
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Routes to IRR-013 (Amber / DEC-02)
+  references: IRR-013
+  description: Failure of outpatient antibiotic therapy after 72 hours.
+- id: P34
+  name: postpartum_heavy_or_increasing_bleeding_or_clots
+  category: Obstetric Postpartum Risk
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Fires RF-008 if postpartum <= 12 weeks and D11/fever present
+  references: RF-008
+  description: Sudden heavy bleeding or clots within 12 weeks of delivery (secondary PPH).
+- id: P35
+  name: days_since_last_period
+  category: Menstrual Pattern
+  type: number (days)
+  allowed_values: 0 to 365 (unknown)
+  unknown_handling: need_more_info
+  references: IRR-004, PCOS-002, PCOS-008, D12, PATH-AMEN-01
+  description: Days elapsed since the first day of the last menstrual period.
+- id: P36
+  name: cycle_length_days
+  category: Menstrual Pattern
+  type: number (days)
+  allowed_values: 10 to 365 (unknown)
+  unknown_handling: Ask P37 (cycles_per_year)
+  references: IRR-001, IRR-002, IRR-003, PCOS-001, FERT-001, FERT-005, D12
+  description: Typical cycle length from Day 1 of one period to Day 1 of the next.
+- id: P37
+  name: cycles_per_year
+  category: Menstrual Pattern
+  type: number (cycles)
+  allowed_values: 0 to 16 (unknown)
+  unknown_handling: need_more_info if P36 also unknown
+  references: IRR-003, PCOS-001, FERT-005, D12
+  description: Number of menstrual bleeding episodes in the past 12 months (< 8 = oligomenorrhea).
+- id: P38
+  name: cycle_variation_days
+  category: Menstrual Pattern
+  type: number (days)
+  allowed_values: 0 to 90 (unknown)
+  unknown_handling: Blocks Green (IRR-001) if unknown
+  references: IRR-001, IRR-002, FIGO System 1
+  description: Difference between longest and shortest cycle over 6 months (> 7-9 days = irregular).
+- id: P39
+  name: bleeding_duration_days
+  category: Menstrual Pattern
+  type: number (days)
+  allowed_values: 1 to 60 (unknown)
+  unknown_handling: need_more_info
+  references: IRR-001, IRR-005, PATH-HMB-01
+  description: Number of days menstrual bleeding typically lasts (> 8 days = prolonged).
+- id: P40
+  name: self_reported_heavy_flow
+  category: Menstrual Pattern
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Blocks Green if unknown
+  references: IRR-005, PATH-HMB-01
+  description: Subjective perception of heavy menstrual flow (flooding, double protection, lifestyle impact).
+- id: P41
+  name: intermenstrual_bleeding_cycles
+  category: Abnormal Bleeding Symptoms
+  type: number (cycles)
+  allowed_values: 0 to 12 (unknown)
+  unknown_handling: unknown escalates to IRR-007 (Amber)
+  references: IRR-007, PATH-HMB-01
+  description: Number of recent cycles with bleeding/spotting between periods (>= 2 = Amber).
+- id: P42
+  name: postcoital_bleeding
+  category: Abnormal Bleeding Symptoms
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: unknown in bleeding tree escalates to IRR-008 (Amber)
+  references: IRR-008, PATH-HMB-01
+  description: Bleeding occurring during or after sexual intercourse.
+- id: P43
+  name: unusual_fatigue
+  category: Anemia & Systemic Symptoms
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: With HMB, unknown escalates to IRR-009 (Amber)
+  references: IRR-009, PATH-HMB-01
+  description: Persistent exhaustion or profound lack of energy.
+- id: P44
+  name: noticeable_pallor
+  category: Anemia & Systemic Symptoms
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: With HMB, unknown escalates to IRR-009 (Amber)
+  references: IRR-009, PATH-HMB-01
+  description: Noticeable paleness of skin, conjunctiva, or lips.
+- id: P45
+  name: breathless_on_mild_exertion
+  category: Anemia & Systemic Symptoms
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: With HMB, unknown escalates to IRR-009 (Amber)
+  references: IRR-009, PATH-HMB-01
+  description: Dyspnea on mild everyday exertion (stairs, light walking).
+- id: P46
+  name: persistent_pelvic_pain_or_pressure
+  category: Pelvic Symptoms & Structural Signs
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: unknown in PATH-AMEN-01/HMB-01 escalates to Amber
+  references: IRR-007, IRR-010, ENDO-007
+  description: Ongoing dull pelvic ache, pressure, or fullness.
+- id: P47
+  name: palpable_pelvic_lump
+  category: Pelvic Symptoms & Structural Signs
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: unknown in PATH-AMEN-01 escalates to IRR-010 (Amber)
+  references: IRR-007, IRR-010, ENDO-007
+  description: Self-palpated swelling or mass in lower abdomen/pelvis.
+- id: P48
+  name: excess_facial_or_body_hair
+  category: PCOS & Hyperandrogenism
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Evaluated in PATH-PCOS-01
+  references: PCOS-003, PCOS-005, PCOS-006, PATH-PCOS-01
+  description: Terminal dark hair on upper lip, chin, chest, or abdomen (hirsutism).
+- id: P49
+  name: severe_or_persistent_acne
+  category: PCOS & Hyperandrogenism
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Evaluated in PATH-PCOS-01
+  references: PCOS-004, PATH-PCOS-01
+  description: Severe, cystic, or treatment-resistant facial or body acne.
+- id: P50
+  name: scalp_hair_thinning
+  category: PCOS & Hyperandrogenism
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Evaluated in PATH-PCOS-01
+  references: PCOS-004, PATH-PCOS-01
+  description: Female pattern hair loss (crown/vertex thinning).
+- id: P51
+  name: mild_premenstrual_acne
+  category: PCOS & Hyperandrogenism
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Evaluated in PCOS-009
+  references: PCOS-009, PATH-PCOS-01
+  description: Mild, transient premenstrual spots settling after menses.
+- id: P52
+  name: rapid_virilization_signs
+  category: PCOS & Hyperandrogenism
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes or unknown (with P48 == yes) escalates to PCOS-005 (Amber)
+  references: PCOS-005, PATH-PCOS-01
+  description: Rapid or progressive virilization (rapid hair growth, voice deepening, clitoromegaly); no verified duration
+    threshold.
+- id: P53
+  name: acanthosis_nigricans
+  category: PCOS & Metabolic Health
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Triggers metabolic note in PCOS-007
+  references: PCOS-007, PATH-PCOS-01
+  description: Hyperpigmented, velvety skin folds on neck, axillae, or groin.
+- id: P54
+  name: known_pcos
+  category: PCOS History
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Evaluated in PCOS-008
+  references: PCOS-008, PATH-PCOS-01
+  description: Prior formal medical diagnosis of polycystic ovary syndrome.
+- id: P55
+  name: bmi
+  category: Metabolic & Physical Metrics
+  type: "number (kg/m\xB2)"
+  allowed_values: 10.0 to 65.0 (unknown)
+  unknown_handling: Optional modifier for IRR-006 and PCOS-007
+  references: IRR-006, PCOS-007
+  description: Body Mass Index; evaluated against 23 (ICMR/FOGSI) or 25 (WHO).
+- id: P56
+  name: significant_weight_loss_or_heavy_training
+  category: Lifestyle & Amenorrhea Risk
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Evaluated in IRR-006 (PATH-AMEN-01 S5)
+  references: IRR-006, PATH-AMEN-01
+  description: Rapid weight loss, strict calorie restriction, or intense daily athletic training.
+- id: P57
+  name: period_pain_present
+  category: Endometriosis & Dysmenorrhea
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Entry check for PATH-ENDO-01
+  references: ENDO-001 to ENDO-008, PATH-ENDO-01
+  description: Presence of cramping or pain associated with menstrual periods.
+- id: P58
+  name: period_pain_affects_daily_life
+  category: Endometriosis & Dysmenorrhea
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: If unknown, blocks Green (ENDO-001)
+  references: ENDO-001, ENDO-002, ENDO-003, ENDO-006, ENDO-008, D13
+  description: Period pain causing absence from work, school, or daily routine.
+- id: P59
+  name: pain_relieved_by_otc
+  category: Endometriosis & Dysmenorrhea
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: If unknown or no, blocks Green (ENDO-001)
+  references: ENDO-001, PATH-ENDO-01
+  description: Pain adequately managed with paracetamol, NSAIDs, or heating pads.
+- id: P60
+  name: pain_starts_days_before_period
+  category: Endometriosis & Dysmenorrhea
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Signal in ENDO-008
+  references: ENDO-008, PATH-ENDO-01
+  description: Pelvic pain onset several days prior to menstrual flow.
+- id: P61
+  name: deep_dyspareunia
+  category: Endometriosis & Dysmenorrhea
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes or unknown in PATH-ENDO-01 escalates to ENDO-004 (Amber)
+  references: ENDO-004, ENDO-006, D13, PATH-ENDO-01
+  description: Deep pelvic pain during or after sexual intercourse.
+- id: P62
+  name: cyclical_bowel_symptoms
+  category: Endometriosis & Dysmenorrhea
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes or unknown in PATH-ENDO-01 escalates to ENDO-005 (Amber)
+  references: ENDO-005, ENDO-006, D13, PATH-ENDO-01
+  description: Painful defecation (dyschezia) or rectal bleeding coinciding with menses.
+- id: P63
+  name: cyclical_urinary_symptoms
+  category: Endometriosis & Dysmenorrhea
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes or unknown in PATH-ENDO-01 escalates to ENDO-005 (Amber)
+  references: ENDO-005, ENDO-006, D13, PATH-ENDO-01
+  description: Painful urination (dysuria) or hematuria coinciding with menses.
+- id: P64
+  name: chronic_pelvic_pain_6plus_months
+  category: Endometriosis & Dysmenorrhea
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Evaluated in ENDO-003, ENDO-006-008, D13
+  references: ENDO-003, ENDO-006, ENDO-007, ENDO-008, D13
+  description: Non-cyclical lower abdominal/pelvic pain persisting >= 6 months.
+- id: P65
+  name: prior_3month_treatment_failed
+  category: Endometriosis Management History
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes or unknown (with P58/P64) escalates to ENDO-003 (Amber)
+  references: ENDO-002, ENDO-003, PATH-ENDO-01
+  description: Failure to obtain adequate pain relief from a 3-month doctor-advised trial.
+- id: P66
+  name: family_history_endometriosis
+  category: Endometriosis Risk History
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: Signal in ENDO-008
+  references: ENDO-008, PATH-ENDO-01
+  description: First-degree relative (mother or sister) diagnosed with endometriosis.
+- id: P67
+  name: miscarriage_count
+  category: Fertility & Pregnancy Loss
+  type: number (losses)
+  allowed_values: 0 to 20 (unknown)
+  unknown_handling: need_more_info in PATH-FERT-01
+  references: FERT-001, FERT-007, PATH-FERT-01
+  description: Total number of spontaneous pregnancy losses.
+- id: P68
+  name: second_trimester_loss
+  category: Fertility & Pregnancy Loss
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes triggers FERT-007 (Amber)
+  references: FERT-001, FERT-007, PATH-FERT-01
+  description: History of any pregnancy loss occurring after 12 weeks gestation.
+- id: P69
+  name: prior_pid
+  category: Fertility & Tubal Risk
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes or unknown in PATH-FERT-01 triggers FERT-006 (Amber)
+  references: FERT-001, FERT-006, D9, PATH-FERT-01
+  description: Prior medical diagnosis of acute or chronic pelvic inflammatory disease.
+- id: P70
+  name: prior_ectopic_pregnancy
+  category: Fertility & Tubal Risk
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes or unknown in PATH-FERT-01 triggers FERT-006 (Amber)
+  references: FERT-001, FERT-006, D9, PATH-FERT-01
+  description: Prior history of ectopic pregnancy.
+- id: P71
+  name: prior_tubal_or_pelvic_surgery
+  category: Fertility & Tubal Risk
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes or unknown in PATH-FERT-01 triggers FERT-006 (Amber)
+  references: FERT-001, FERT-006, D9, PATH-FERT-01
+  description: Prior surgery involving fallopian tubes, ovaries, uterus, or appendix.
+- id: P72
+  name: unable_to_have_penetrative_intercourse
+  category: Fertility & Sexual Health
+  type: yes_no_unknown
+  allowed_values: '[yes, no, unknown]'
+  unknown_handling: yes or unknown in PATH-FERT-01 triggers FERT-008 (Amber)
+  references: FERT-001, FERT-008, PATH-FERT-01
+  description: Inability to engage in penetrative vaginal intercourse (vaginismus, dyspareunia).
+derived_variables:
+- id: D1
+  name: pregnancy_excluded
+  category: Derived Gate
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown blocks non-pregnancy pathways
+  references: GATE-001, RF-001, RF-002, RF-006, EP-001, all pathways
+  description: 'Precedence hierarchy: false if P7==positive; true if (P4==no & P5==no) OR (P7==negative & D10>=21 with no
+    subsequent sex); unknown if P7==negative & D10<21, or untested with pregnancy possible.'
+- id: D2
+  name: age_cohort
+  category: Derived Demographics
+  type: string
+  allowed_values: 18_25 / 26_34 / 35_40 / out_of_scope / unknown
+  unknown_handling: unknown -> need_more_info
+  references: FERT-001 to FERT-004, IRR-011
+  description: 'Age grouping: 18-25, 26-34, 35-40, or out_of_scope (<18 or >40).'
+- id: D3
+  name: cocp_washout_required
+  category: Derived Contraception
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> need_more_info in PCOS
+  references: GATE-003A, D5, PATH-PCOS-01
+  description: true if P9==cocp_combined_pill OR P11==yes (2023 Guideline PP 1.2.6 COCP 3-month washout).
+- id: D4
+  name: progestin_contraception_active
+  category: Derived Contraception
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> need_more_info in bleeding
+  references: GATE-003B, D5, PATH-PCOS-01
+  description: true if P9 in [progestin_pill, progestin_implant, hormonal_iud, injection_depo].
+- id: D5
+  name: hormonal_cycle_interference
+  category: Derived Contraception
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> need_more_info
+  references: PATH-AMEN-01 (S4), PATH-PCOS-01 (S1)
+  description: 'Composite flag: D3 OR D4.'
+- id: D6
+  name: physiological_lactational_amenorrhea
+  category: Derived Obstetric
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> need_more_info if postpartum
+  references: GATE-004, PATH-AMEN-01 (S4)
+  description: 'Formal LAM: true if P16==yes (exclusively breastfeeding) AND P15 in [within_6_weeks, 6_to_12_weeks, 12_weeks_to_6_months].
+    Extended breastfeeding amenorrhea: P15==6_to_12_months & P16==yes. Non-lactating amenorrhea >12 weeks is abnormal secondary
+    amenorrhea (P16==no & P15 in [12_weeks_to_6_months, 6_to_12_months, more_than_12_months_ago]).'
+- id: D7
+  name: adult_gynecological_age
+  category: Derived Gynecological
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> need_more_info (ask menarche age P3 rather than assuming maturity from age)
+  references: PCOS-001 to PCOS-006, D12
+  description: 'Gynecological maturity: false if P2==yes; true if (P1-P3)>=3; false if (P1-P3)<3; unknown if P3==unknown.
+    Do NOT assume gynecological maturity from chronological age (e.g. a 21-year-old with menarche at 19 is only 2 years post-menarche).'
+- id: D8
+  name: sti_risk_present
+  category: Derived Sexual Health
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown if P13 unknown; context flag only, never auto-escalates; symptomatic pathways escalate on symptoms
+  references: GATE-006, IRR-013 (context only)
+  description: true if P13 == yes; false if P13 == no; unknown otherwise. Age < 25 is a screening-eligibility note, NOT an
+    infection-risk input and not an escalation trigger. Pending doctor approval (DEC-11).
+- id: D9
+  name: tubal_risk_history
+  category: Derived Fertility Risk
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> need_more_info in PATH-FERT-01
+  references: FERT-001, FERT-006, PATH-FERT-01
+  description: 'Composite tubal risk: true if P69==yes OR P70==yes OR P71==yes.'
+- id: D10
+  name: unprotected_sex_to_test_interval_days
+  category: Derived Testing Interval
+  type: number/unknown
+  allowed_values: 0 to 365 (unknown)
+  unknown_handling: unknown -> need_more_info
+  references: GATE-001, D1
+  description: 'Calculated interval: P6 - P8; must be >= 21 days for negative urine test validity per NHS/FSRH.'
+- id: D11
+  name: reported_hemodynamic_instability
+  category: Derived Vital Stability
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> need_more_info in acute bleeding
+  references: RF-003, RF-004, IRR-007A
+  description: 'Patient-reported instability proxy: P25==yes (syncope/collapse) is direct instability; P26==yes (racing heart
+    at rest) acts as early instability proxy specifically with acute bleeding (P24) or severe pain (P19).'
+- id: D12
+  name: pcos_ovulatory_dysfunction_pattern
+  category: Derived Ovulatory Pattern
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> need_more_info
+  references: PCOS-001, PCOS-003, PCOS-004, FERT-005
+  description: true if (P36 < 21 OR P36 > 35 OR P37 < 8 OR P35 > 90) with D7==true, D5==false, D1==true.
+- id: D13
+  name: endometriosis_suspicion_signal
+  category: Derived Endometriosis
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> need_more_info in PATH-FERT-01
+  references: FERT-001, PATH-FERT-01
+  description: 'Composite endometriosis signal: P58==yes OR P61==yes OR P62==yes OR P63==yes OR P64==yes.'
+- id: D14
+  name: pelvic_infection_severity_marker
+  category: Derived Sepsis Risk
+  type: true/false/unknown
+  allowed_values: true / false / unknown
+  unknown_handling: unknown -> ask P28/P30/P31
+  references: RF-005, IRR-013
+  description: "Systemic-severity proxy, OR logic: ANY ONE of P28==yes (fever >38.5\xB0C), P30==yes (severely unwell/prostrate),\
+    \ P31==yes (persistent vomiting, cannot keep fluids/tablets down) sets D14 = true. Intended logic (single marker vs combination)\
+    \ is a project choice pending doctor approval (DEC-02). CDC lists these as hospitalisation criteria, not as a validated\
+    \ patient-reported Red trigger."
