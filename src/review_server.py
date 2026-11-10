@@ -123,7 +123,7 @@ class ReviewRequestHandler(BaseHTTPRequestHandler):
             batch_id = path.split("/")[3]
             cases = self.case_store.load_cases_by_batch(batch_id)
             completed_ids: list[str] = []
-            doc_query = query_params.get("doctor", [None])[0]
+            doc_query = query.get("doctor", [None])[0]
             target_doctor = doc_query or auth.doctor_name
             if target_doctor:
                 completed_ids = self.case_store.get_doctor_completed_case_ids(target_doctor, batch_id)
