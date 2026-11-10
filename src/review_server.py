@@ -319,6 +319,17 @@ def run_review_server(
     case_store = CaseStore(db_path=db_path)
     triage_engine = TriageEngine()
 
+    # Auto-seed default batch cases if starting on fresh cloud database
+    existing_cases = case_store.load_cases_by_batch(batch_id)
+    if not existing_cases:
+        from .synthetic_generator import SyntheticPatientGenerator
+        print(f"Fresh database detected. Auto-seeding {batch_id} cases...")
+        gen = SyntheticPatientGenerator(seed=42)
+        batch_cases = gen.generate_batch1_cases()
+        for c in batch_cases:
+            case_store.save_synthetic_case(c)
+        print(f"Successfully seeded {len(batch_cases)} cases into {db_path}!")
+
     server = ThreadingHTTPServer((host, port), ReviewRequestHandler)
     server.security_manager = security_manager  # type: ignore
     server.case_store = case_store  # type: ignore
@@ -347,13 +358,17 @@ def run_review_server(
 
 
 def main() -> None:
+    env_port = int(os.environ.get("PORT", "8080"))
+    env_host = os.environ.get("HOST", "0.0.0.0" if os.environ.get("PORT") else "127.0.0.1")
+    trust_proxy = bool(os.environ.get("PORT") or os.environ.get("TRUST_PROXY_HTTPS"))
+
     parser = argparse.ArgumentParser(description="Antigravity Doctor Review Server")
-    parser.add_argument("--host", type=str, default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--host", type=str, default=env_host)
+    parser.add_argument("--port", type=int, default=env_port)
     parser.add_argument("--batch", type=str, default="batch1")
     parser.add_argument("--tls-cert", type=str, default=None)
     parser.add_argument("--tls-key", type=str, default=None)
-    parser.add_argument("--trust-proxy-https", action="store_true")
+    parser.add_argument("--trust-proxy-https", action="store_true", default=trust_proxy)
     parser.add_argument("--db-path", type=str, default="data/triage_reviews.db")
     args = parser.parse_args()
 

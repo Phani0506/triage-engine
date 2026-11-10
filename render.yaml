@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: triage-engine
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 -m src.review_server
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: TRIAGE_REVIEW_DOCTOR_TOKENS
+        value: "adarsh:sM5WfU1GLNbpJovXBBCxSC0K-MjQWfZ5YcZOWI5SCYg,dr_smitha:_V32C2Ri7Y-4llzDs77IvSlnZ2J9BdnSAfzBjdHhy_U,dr_surbhi:iA1okF6WCe6y9GWLorCdvgQelCgTeNIK6ZZpSri23QQ"
+      - key: TRIAGE_REVIEW_ADMIN_TOKEN
+        value: "hQANp-2BqhynfmNrWetHGIpcWD5Ux0DfEshJxdzVStA"
