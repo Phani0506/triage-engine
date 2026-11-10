@@ -38,13 +38,16 @@ def _base_healthy_inputs() -> Dict[str, Any]:
         "pregnancy_test_result": "negative",
         "pregnancy_test_days_ago": 5,
         "days_since_last_unprotected_sex": 30,
-        "hormonal_contraception": "none",
+        "contraceptive_method_type": "none",
+        "stopped_cocp_within_3_months": "no",
         "currently_breastfeeding": "no",
         "menarche_age": 13,
         "days_since_last_period": 28,
-        "typical_cycle_length_days": 28,
+        "cycle_length_days": 28,
+        "cycles_per_year": 12,
         "cycle_variation_days": 2,
-        "periods_in_past_year": 12,
+        "period_duration_days": 5,
+        "never_had_period": "no",
         "trying_to_conceive": "no",
         "trying_duration_months": 0,
         "miscarriage_count": 0,
@@ -53,37 +56,53 @@ def _base_healthy_inputs() -> Dict[str, Any]:
         "prior_ectopic_pregnancy": "no",
         "prior_tubal_or_pelvic_surgery": "no",
         "unable_to_have_penetrative_intercourse": "no",
-        "severe_lower_abdominal_pain": "no",
+        "acute_severe_pelvic_pain": "no",
+        "pelvic_pain_any": "no",
+        "vaginal_bleeding_now": "no",
         "shoulder_tip_pain": "no",
-        "hourly_pad_soaking_more_than_2_hours": "no",
-        "syncope_or_near_fainting": "no",
-        "fever_with_pelvic_pain": "no",
-        "acute_severe_pain_with_vomiting": "no",
-        "postpartum_heavy_bleeding_with_fever": "no",
+        "soaking_pad_hourly_2plus_hours": "no",
+        "fainting_or_near_fainting": "no",
+        "racing_heartbeat_at_rest": "no",
+        "passing_large_clots": "no",
+        "self_reported_heavy_flow": "no",
+        "bleeding_duration_days": 5,
+        "fever_over_38_5c": "no",
+        "feels_feverish_or_has_chills": "no",
+        "feels_severely_unwell": "no",
+        "persistent_vomiting_cannot_keep_fluids_down": "no",
+        "foul_smelling_or_purulent_discharge": "no",
+        "sudden_pain_with_vomiting": "no",
+        "postpartum_delivery_timing": "none",
+        "postpartum_heavy_or_increasing_bleeding_or_clots": "no",
         "period_pain_affects_daily_life": "no",
         "pain_starts_days_before_period": "no",
         "deep_dyspareunia": "no",
         "cyclical_bowel_symptoms": "no",
         "cyclical_urinary_symptoms": "no",
         "chronic_pelvic_pain_6plus_months": "no",
+        "prior_endometriosis_treatment_failed": "no",
         "failed_first_line_pain_treatment": "no",
         "known_endometriosis": "no",
         "family_history_endometriosis": "no",
         "excess_facial_or_body_hair": "no",
+        "hirsutism_excessive_hair": "no",
         "severe_or_persistent_acne": "no",
         "scalp_hair_thinning": "no",
         "rapid_virilization_signs": "no",
         "acanthosis_nigricans": "no",
         "bmi": 21.5,
-        "bleeding_soaks_pad_hourly": "no",
-        "period_duration_days": 5,
         "intermenstrual_bleeding": "no",
+        "intermenstrual_bleeding_cycles": 0,
         "postcoital_bleeding": "no",
-        "clots_greater_than_quarter": "no",
-        "fatigue_or_breathlessness_with_bleeding": "no",
+        "unusual_fatigue": "no",
+        "noticeable_pallor": "no",
+        "breathless_on_mild_exertion": "no",
         "pelvic_mass_or_fullness": "no",
+        "palpable_pelvic_lump": "no",
+        "persistent_pelvic_pain_or_pressure": "no",
         "significant_weight_loss_or_heavy_training": "no",
-        "purulent_discharge": "no",
+        "partner_sti_symptoms_or_new_partner": "no",
+        "recent_partner_change": "no",
     }
 
 
@@ -97,7 +116,8 @@ def bp_rf001_ectopic(rng: random.Random) -> Tuple[Dict[str, Any], List[str]]:
         "age": rng.randint(22, 34),
         "pregnancy_status": "unknown",
         "pregnancy_test_result": "unknown",
-        "severe_lower_abdominal_pain": "yes",
+        "acute_severe_pelvic_pain": "yes",
+        "pelvic_pain_any": "yes",
         "days_since_last_period": rng.randint(45, 60),
     })
     return inputs, ["pregnancy_test_result", "pregnancy_status"]
@@ -107,9 +127,12 @@ def bp_rf002_shoulder_tip(rng: random.Random) -> Tuple[Dict[str, Any], List[str]
     inputs.update({
         "age": rng.randint(23, 35),
         "shoulder_tip_pain": "yes",
-        "severe_lower_abdominal_pain": "yes",
-        "intermenstrual_bleeding": "yes",
+        "acute_severe_pelvic_pain": "yes",
+        "pelvic_pain_any": "yes",
+        "vaginal_bleeding_now": "yes",
         "pregnancy_status": "unknown",
+        "pregnancy_test_result": "unknown",
+        "days_since_last_unprotected_sex": "unknown",
     })
     return inputs, ["pregnancy_status"]
 
@@ -117,8 +140,9 @@ def bp_rf003_pad_soaking_instability(rng: random.Random) -> Tuple[Dict[str, Any]
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": rng.randint(20, 38),
-        "hourly_pad_soaking_more_than_2_hours": "yes",
-        "syncope_or_near_fainting": "yes",
+        "soaking_pad_hourly_2plus_hours": "yes",
+        "fainting_or_near_fainting": "yes",
+        "vaginal_bleeding_now": "yes",
     })
     return inputs, []
 
@@ -126,8 +150,9 @@ def bp_rf007_torsion(rng: random.Random) -> Tuple[Dict[str, Any], List[str]]:
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": rng.randint(19, 32),
-        "severe_lower_abdominal_pain": "yes",
-        "acute_severe_pain_with_vomiting": "yes",
+        "acute_severe_pelvic_pain": "yes",
+        "sudden_pain_with_vomiting": "yes",
+        "pelvic_pain_any": "yes",
     })
     return inputs, []
 
@@ -135,7 +160,9 @@ def bp_rf008_postpartum_sepsis(rng: random.Random) -> Tuple[Dict[str, Any], List
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": rng.randint(22, 36),
-        "postpartum_heavy_bleeding_with_fever": "yes",
+        "postpartum_delivery_timing": "within_6_weeks",
+        "postpartum_heavy_or_increasing_bleeding_or_clots": "yes",
+        "fever_over_38_5c": "yes",
     })
     return inputs, []
 
@@ -143,10 +170,11 @@ def bp_pcos003_rotterdam_hirsutism(rng: random.Random) -> Tuple[Dict[str, Any], 
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": rng.randint(22, 32),
-        "typical_cycle_length_days": rng.randint(42, 55),
+        "cycle_length_days": rng.randint(42, 55),
         "cycle_variation_days": 14,
-        "periods_in_past_year": 7,
+        "cycles_per_year": 7,
         "excess_facial_or_body_hair": "yes",
+        "hirsutism_excessive_hair": "yes",
         "bmi": round(rng.uniform(21.0, 24.5), 1),
     })
     return inputs, []
@@ -155,10 +183,12 @@ def bp_pcos004_acne_alopecia(rng: random.Random) -> Tuple[Dict[str, Any], List[s
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": rng.randint(20, 29),
-        "typical_cycle_length_days": 46,
-        "periods_in_past_year": 7,
+        "cycle_length_days": 46,
+        "cycles_per_year": 7,
         "severe_or_persistent_acne": "yes",
+        "moderate_severe_cystic_acne": "yes",
         "excess_facial_or_body_hair": "no",
+        "hirsutism_excessive_hair": "no",
     })
     return inputs, []
 
@@ -167,8 +197,11 @@ def bp_pcos005_rapid_virilization(rng: random.Random) -> Tuple[Dict[str, Any], L
     inputs.update({
         "age": rng.randint(25, 34),
         "excess_facial_or_body_hair": "yes",
+        "hirsutism_excessive_hair": "yes",
         "rapid_virilization_signs": "yes",
-        "typical_cycle_length_days": 48,
+        "rapid_virilization": "yes",
+        "cycle_length_days": 48,
+        "cycles_per_year": 7,
     })
     return inputs, []
 
@@ -176,9 +209,10 @@ def bp_pcos006_regular_hirsutism(rng: random.Random) -> Tuple[Dict[str, Any], Li
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": rng.randint(22, 35),
-        "typical_cycle_length_days": 29,
-        "periods_in_past_year": 12,
+        "cycle_length_days": 29,
+        "cycles_per_year": 12,
         "excess_facial_or_body_hair": "yes",
+        "hirsutism_excessive_hair": "yes",
     })
     return inputs, []
 
@@ -186,9 +220,10 @@ def bp_pcos007_cardiometabolic(rng: random.Random) -> Tuple[Dict[str, Any], List
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": 28,
-        "typical_cycle_length_days": 50,
-        "periods_in_past_year": 6,
+        "cycle_length_days": 50,
+        "cycles_per_year": 6,
         "excess_facial_or_body_hair": "yes",
+        "hirsutism_excessive_hair": "yes",
         "bmi": 28.4,
         "acanthosis_nigricans": "yes",
     })
@@ -198,8 +233,8 @@ def bp_pcos009_healthy_green(rng: random.Random) -> Tuple[Dict[str, Any], List[s
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": rng.randint(21, 30),
-        "typical_cycle_length_days": 28,
-        "periods_in_past_year": 12,
+        "cycle_length_days": 28,
+        "cycles_per_year": 12,
         "cycle_variation_days": 2,
     })
     return inputs, []
@@ -210,6 +245,7 @@ def bp_pcos_borderline_gap91(rng: random.Random) -> Tuple[Dict[str, Any], List[s
         "age": 26,
         "days_since_last_period": 95,
         "excess_facial_or_body_hair": "yes",
+        "hirsutism_excessive_hair": "yes",
         "bmi": 29.0,
         "acanthosis_nigricans": "yes",
     })
@@ -220,7 +256,8 @@ def bp_pcos_gate005_adolescent(rng: random.Random) -> Tuple[Dict[str, Any], List
     inputs.update({
         "age": 19,
         "menarche_age": 17,
-        "typical_cycle_length_days": 42,
+        "cycle_length_days": 42,
+        "cycles_per_year": 7,
     })
     return inputs, []
 
@@ -228,9 +265,10 @@ def bp_pcos_bmi_boundary_indian(rng: random.Random) -> Tuple[Dict[str, Any], Lis
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": 30,
-        "typical_cycle_length_days": 48,
-        "periods_in_past_year": 7,
+        "cycle_length_days": 48,
+        "cycles_per_year": 7,
         "excess_facial_or_body_hair": "yes",
+        "hirsutism_excessive_hair": "yes",
         "bmi": 23.4,
     })
     return inputs, []
@@ -239,8 +277,10 @@ def bp_pcos_with_pcb_cross_amber(rng: random.Random) -> Tuple[Dict[str, Any], Li
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": 28,
-        "typical_cycle_length_days": 45,
+        "cycle_length_days": 45,
+        "cycles_per_year": 7,
         "excess_facial_or_body_hair": "yes",
+        "hirsutism_excessive_hair": "yes",
         "postcoital_bleeding": "yes",
     })
     return inputs, []
@@ -251,8 +291,11 @@ def bp_pcos_uncertain_pregnancy_window(rng: random.Random) -> Tuple[Dict[str, An
         "age": 25,
         "days_since_last_period": 95,
         "excess_facial_or_body_hair": "yes",
+        "hirsutism_excessive_hair": "yes",
         "days_since_last_unprotected_sex": 12,
         "pregnancy_test_days_ago": 1,
+        "pregnancy_status": "unknown",
+        "pregnancy_test_result": "negative",
     })
     return inputs, []
 
@@ -260,8 +303,9 @@ def bp_pcos_cocp_washout(rng: random.Random) -> Tuple[Dict[str, Any], List[str]]
     inputs = _base_healthy_inputs()
     inputs.update({
         "age": 24,
-        "hormonal_contraception": "combined_pill",
-        "typical_cycle_length_days": 42,
+        "contraceptive_method_type": "cocp_combined_pill",
+        "cycle_length_days": 42,
+        "cycles_per_year": 7,
     })
     return inputs, []
 
@@ -279,7 +323,9 @@ def bp_pcos_unknown_rapid_virilization(rng: random.Random) -> Tuple[Dict[str, An
     inputs.update({
         "age": 31,
         "excess_facial_or_body_hair": "yes",
+        "hirsutism_excessive_hair": "yes",
         "rapid_virilization_signs": "unknown",
+        "rapid_virilization": "unknown",
     })
     return inputs, ["rapid_virilization_signs"]
 
@@ -484,15 +530,15 @@ ALL_BLUEPRINTS: List[OracleBlueprint] = [
 
     # Borderline & Interactions
     OracleBlueprint("BP-PCOS-GAP91", "pcos", "borderline", "teleconsultation", "yellow", "complete", ["PCOS-002", "PCOS-003", "PCOS-007", "PCOS-008"], ["Single cycle gap > 90 days with PCOS features and endometrial protection alert"], "2023 PCOS Guideline & Task Brief Patient A", ["26-year-old female with no period for 95 days (negative pregnancy test).", "Facial hirsutism, BMI 29, dark skin velvety patches.", "Teleconsultation for progestogen withdrawal and PCOS assessment."], bp_pcos_borderline_gap91),
-    OracleBlueprint("BP-PCOS-GATE005", "pcos", "borderline", "need_more_info", "none", "out_of_scope", ["GATE-005"], ["Adolescent gynecological axis maturity boundary (< 3 years post-menarche)"], "2023 PCOS Guideline Section 1.2", ["19-year-old female, menarche at 17 (gynecological age 2 years).", "Cycles 42 days apart.", "Immature hypothalamic-pituitary-ovarian axis; developmental deferral."], bp_pcos_gate005_adolescent),
+    OracleBlueprint("BP-PCOS-GATE005", "pcos", "borderline", "teleconsultation", "yellow", "complete", ["IRR-003", "GATE-005"], ["Adolescent gynecological axis maturity boundary (< 3 years post-menarche) with oligomenorrhea"], "2023 PCOS Guideline Section 1.2", ["19-year-old female, menarche at 17 (gynecological age 2 years).", "Cycles 42 days apart.", "Immature hypothalamic-pituitary-ovarian axis; developmental deferral."], bp_pcos_gate005_adolescent),
     OracleBlueprint("BP-PCOS-BMI-INDIAN", "pcos", "borderline", "teleconsultation", "yellow", "complete", ["PCOS-003", "PCOS-007"], ["PCOS with Indian BMI boundary marker (23.4 kg/m2)"], "ICMR / FOGSI Consensus Guidelines (DEC-06)", ["30-year-old female with 48-day cycle variation and mild hirsutism.", "BMI 23.4 kg/m2 (exceeds Asian Indian 23.0 threshold).", "Teleconsultation with early cardiometabolic screen."], bp_pcos_bmi_boundary_indian),
     OracleBlueprint("BP-PCOS-PCB-CROSS", "multi_topic", "complicated", "clinic_visit", "amber", "complete", ["IRR-008"], ["PCOS signs with co-occurring postcoital bleeding"], "NICE NG12 / FOGSI Cervical Health", ["28-year-old female with irregular periods and mild hirsutism.", "Reports bleeding after sexual intercourse on multiple occasions.", "Cervical visual inspection required; Amber clinic visit supersedes Yellow."], bp_pcos_with_pcb_cross_amber),
 
     # Uncertainty & Missing Inputs
     OracleBlueprint("BP-PCOS-UNCERTAIN-PREG", "pcos", "missing_info", "none", "none", "need_more_info", ["GATE-001"], ["Uncertain pregnancy exclusion due to early test window (D10 < 21 days)"], "FSRH / NICE NG126 Window Rule", ["25-year-old female with 95 days since last period.", "Negative urine test done only 12 days after unprotected sex.", "Test invalid for pregnancy exclusion; prompt repeat test at 21 days."], bp_pcos_uncertain_pregnancy_window),
-    OracleBlueprint("BP-PCOS-COCP-WASHOUT", "pcos", "missing_info", "none", "none", "out_of_scope", ["GATE-003A"], ["Active or recent combined oral contraception masking endogenous cycle"], "2023 PCOS Guideline Rec 1.1.2", ["24-year-old female currently on combined oral contraceptive pill.", "Seeking evaluation for suspected PCOS.", "Hormone evaluation requires minimum 3-month washout post-pill."], bp_pcos_cocp_washout),
+    OracleBlueprint("BP-PCOS-COCP-WASHOUT", "pcos", "missing_info", "none", "none", "need_more_info", ["GATE-003A"], ["Active or recent combined oral contraception masking endogenous cycle"], "2023 PCOS Guideline Rec 1.1.2", ["24-year-old female currently on combined oral contraceptive pill.", "Seeking evaluation for suspected PCOS.", "Hormone evaluation requires minimum 3-month washout post-pill."], bp_pcos_cocp_washout),
     OracleBlueprint("BP-PCOS-GREEN-LOCKOUT", "pcos", "missing_info", "none", "none", "need_more_info", [], ["Strict Green lockout triggered by unknown acne/alopecia inputs"], "System Safety Invariant", ["22-year-old female with regular cycles.", "Acne severity and hair thinning status unconfirmed.", "Safety lockout prevents premature Green reassurance; ask missing inputs."], bp_pcos_green_lockout_unknown_androgen),
-    OracleBlueprint("BP-PCOS-UNKNOWN-VIRIL", "pcos", "missing_info", "clinic_visit", "amber", "complete", ["PCOS-005"], ["Unknown rapid virilization in patient with hirsutism escalates safely to Amber"], "Clinical Risk Mitigation Principle", ["31-year-old female with noticeable facial hirsutism.", "Speed of onset and voice deepening unknown.", "Escalated safely to clinic visit to exclude acute androgen neoplasm."], bp_pcos_unknown_rapid_virilization),
+    OracleBlueprint("BP-PCOS-UNKNOWN-VIRIL", "pcos", "missing_info", "none", "none", "need_more_info", ["PCOS-005"], ["Unknown rapid virilization in patient with hirsutism requires follow-up safety questions"], "Clinical Risk Mitigation Principle", ["31-year-old female with noticeable facial hirsutism.", "Speed of onset and voice deepening unknown.", "Prompt follow-up question to exclude acute androgen neoplasm."], bp_pcos_unknown_rapid_virilization),
 
     # Endometriosis
     OracleBlueprint("BP-ENDO-001", "endometriosis", "normal", "self_care", "green", "complete", ["ENDO-001"], ["Normal menstruation without chronic or disabling pelvic pain"], "NICE NG73 (2024)", ["24-year-old female with mild cyclical cramping not disrupting daily life.", "No deep pain, chronic pain, or cyclical bowel/urinary symptoms.", "Reassurance and self-care guidance."], bp_endo001_healthy_green),

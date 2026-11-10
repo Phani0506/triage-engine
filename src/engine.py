@@ -427,7 +427,18 @@ class TriageEngine:
                         green_blocked = True
                         green_missing.add("pregnancy_test_result")
                 elif rule.id == "PCOS-009":
-                    required = ["cycle_length_days", "hirsutism_excessive_hair", "moderate_severe_cystic_acne", "male_pattern_alopecia", "known_pcos"]
+                    required = [
+                        "cycle_length_days",
+                        "excess_facial_or_body_hair",
+                        "hirsutism_excessive_hair",
+                        "severe_or_persistent_acne",
+                        "scalp_hair_thinning",
+                        "known_pcos",
+                    ]
+                    for k in required:
+                        if context.get(k) in [None, "unknown"]:
+                            green_blocked = True
+                            green_missing.add(k)
                     for k in required:
                         if context.get(k) in [None, "unknown"]:
                             green_blocked = True

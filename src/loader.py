@@ -65,6 +65,18 @@ class SchemaRegistry:
         "moderate_severe_cystic_acne": "severe_or_persistent_acne",
         "male_pattern_alopecia": "scalp_hair_thinning",
         "significant_recent_weight_loss_or_intensive_exercise": "significant_weight_loss_or_heavy_training",
+        "infant_age_months": "postpartum_delivery_timing",
+        "hourly_pad_soaking_more_than_2_hours": "soaking_pad_hourly_2plus_hours",
+        "bleeding_soaks_pad_hourly": "soaking_pad_hourly_2plus_hours",
+        "syncope_or_near_fainting": "fainting_or_near_fainting",
+        "severe_lower_abdominal_pain": "acute_severe_pelvic_pain",
+        "fever_with_pelvic_pain": "fever_over_38_5c",
+        "acute_severe_pain_with_vomiting": "sudden_pain_with_vomiting",
+        "postpartum_heavy_bleeding_with_fever": "postpartum_heavy_or_increasing_bleeding_or_clots",
+        "secondary_pph_bleeding": "postpartum_heavy_or_increasing_bleeding_or_clots",
+        "typical_cycle_length_days": "cycle_length_days",
+        "periods_in_past_year": "cycles_per_year",
+        "pelvic_mass_or_fullness": "palpable_pelvic_lump",
     }
 
     def get_canonical_name(self, key: str) -> str:
@@ -88,8 +100,14 @@ class SchemaRegistry:
         """Maps IDs to names, ensures missing inputs default to 'unknown'."""
         normalized: Dict[str, Any] = {}
 
-        # First, copy across raw inputs with canonical names and IDs
-        for k, v in raw_inputs.items():
+        # Sort keys so that canonical schema keys run AFTER alias keys (canonical values win)
+        sorted_keys = sorted(
+            raw_inputs.keys(),
+            key=lambda k: 1 if (k in self.patient_inputs_by_name or k in self.patient_inputs_by_id) else 0
+        )
+
+        for k in sorted_keys:
+            v = raw_inputs[k]
             canonical = self.get_canonical_name(k)
             # Normalize None or empty string to 'unknown'
             if v is None or v == "":
@@ -98,6 +116,10 @@ class SchemaRegistry:
                 val = "yes" if v else "no"
             else:
                 val = v
+
+            # If canonical is already set by a direct canonical key, do not overwrite with an alias
+            if canonical in normalized and canonical in raw_inputs and k != canonical:
+                continue
 
             normalized[canonical] = val
             normalized[k] = val
