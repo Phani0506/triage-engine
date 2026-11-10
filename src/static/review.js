@@ -68,11 +68,17 @@
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       if (params.has('t')) {
-        authToken = params.get('t');
+        let t = params.get('t') || '';
+        // Sanitize any accidental markdown trailing characters
+        t = t.split(/[^a-zA-Z0-9_-]/)[0] || '';
+        authToken = t;
         sessionStorage.setItem('triage_token', authToken);
       }
       if (params.has('batch')) {
-        batchId = params.get('batch');
+        let b = params.get('batch') || 'batch1';
+        // Sanitize any accidental markdown trailing characters
+        b = b.split(/[^a-zA-Z0-9_-]/)[0] || 'batch1';
+        batchId = b;
         sessionStorage.setItem('triage_batch', batchId);
       }
       // Security: Strip hash from URL so token is not exposed in address bar
@@ -87,7 +93,8 @@
       if (authToken) sessionStorage.setItem('triage_token', authToken);
     }
 
-    batchId = sessionStorage.getItem('triage_batch') || 'batch1';
+    batchId = (sessionStorage.getItem('triage_batch') || 'batch1').split(/[^a-zA-Z0-9_-]/)[0] || 'batch1';
+    sessionStorage.setItem('triage_batch', batchId);
     elBatchDisplay.textContent = batchId.toUpperCase();
   }
 
