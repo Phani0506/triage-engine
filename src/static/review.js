@@ -93,20 +93,23 @@
 
   function initDoctorIdentity() {
     doctorName = localStorage.getItem('triage_doctor_name') || '';
-    if (!doctorName) {
-      doctorName = prompt('Welcome, Doctor! Please enter your name (e.g. Dr. Smitha, Dr. Surbhi, Adarsh):') || 'Doctor';
-      localStorage.setItem('triage_doctor_name', doctorName);
+    while (!doctorName || !doctorName.trim()) {
+      doctorName = prompt('Welcome, Doctor! Please enter your name (e.g. Dr. Adarsh, Dr. Smitha):') || '';
+      if (doctorName && doctorName.trim()) {
+        localStorage.setItem('triage_doctor_name', doctorName.trim());
+      }
     }
-    elDoctorName.textContent = doctorName;
+    elDoctorName.textContent = doctorName.trim();
   }
 
   function setupEventListeners() {
-    btnChangeName.addEventListener('click', () => {
-      const newName = prompt('Enter doctor name:', doctorName);
+    btnChangeName.addEventListener('click', async () => {
+      const newName = prompt('Enter your name:', doctorName);
       if (newName && newName.trim()) {
         doctorName = newName.trim();
         localStorage.setItem('triage_doctor_name', doctorName);
         elDoctorName.textContent = doctorName;
+        await loadBatch();
       }
     });
 
@@ -156,7 +159,7 @@
       elCaseContent.classList.add('hidden');
       elCompletionState.classList.add('hidden');
 
-      const data = await apiFetch(`/api/batches/${batchId}/cases`);
+      const data = await apiFetch(`/api/batches/${batchId}/cases?doctor=${encodeURIComponent(doctorName)}`);
       batchCases = data.cases || [];
       completedCaseIds = new Set(data.completed_case_ids || []);
 
@@ -264,6 +267,7 @@
     try {
       const payload = {
         case_id: currentCaseData.case_id,
+        doctor_name: doctorName,
         doctor_level: selectedLevel,
         doctor_colour: selectedColour,
         doctor_initial_notes: elDoctorNotes.value.trim(),
@@ -364,6 +368,7 @@
           method: 'POST',
           body: JSON.stringify({
             review_id: currentReviewId,
+            doctor_name: doctorName,
             verdict: selectedVerdict,
             problem_chips: checkedChips,
             feedback_text: elFeedbackText.value.trim(),

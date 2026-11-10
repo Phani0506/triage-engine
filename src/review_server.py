@@ -119,12 +119,14 @@ class ReviewRequestHandler(BaseHTTPRequestHandler):
             })
 
         # API: List cases for a batch (Doctor or Admin)
-        if path.startswith("/api/batches/") and path.endswith("/cases"):
+        if path.startswith("/api/batches/") and "/cases" in path:
             batch_id = path.split("/")[3]
             cases = self.case_store.load_cases_by_batch(batch_id)
             completed_ids: list[str] = []
-            if auth.doctor_name:
-                completed_ids = self.case_store.get_doctor_completed_case_ids(auth.doctor_name, batch_id)
+            doc_query = query_params.get("doctor", [None])[0]
+            target_doctor = doc_query or auth.doctor_name
+            if target_doctor:
+                completed_ids = self.case_store.get_doctor_completed_case_ids(target_doctor, batch_id)
             summaries = [
                 {
                     "case_id": c.case_id,
@@ -221,7 +223,7 @@ pre{{background:#f8fafc;padding:1rem;border:1px solid #cbd5e1;border-radius:6px;
             engine_result = self.triage_engine.evaluate(case.patient_inputs)
             engine_dict = engine_result.to_dict()
 
-            doctor_name = auth.doctor_name or "Doctor"
+            doctor_name = (payload.get("doctor_name") or auth.doctor_name or "Doctor").strip()
             record = self.case_store.record_doctor_assessment(
                 case_id=case_id,
                 doctor_name=doctor_name,
@@ -258,7 +260,7 @@ pre{{background:#f8fafc;padding:1rem;border:1px solid #cbd5e1;border-radius:6px;
             if not review_id:
                 return self._send_error_json(HTTPStatus.BAD_REQUEST, "Missing review_id.")
 
-            doctor_name = auth.doctor_name or ""
+            doctor_name = (payload.get("doctor_name") or auth.doctor_name or "Doctor").strip()
             ok = self.case_store.record_doctor_feedback(
                 review_id=review_id,
                 doctor_name=doctor_name,
