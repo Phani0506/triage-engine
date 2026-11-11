@@ -230,7 +230,7 @@ class CaseStore:
         try:
             cur = conn.cursor()
             cur.execute(
-                "SELECT DISTINCT case_id FROM doctor_reviews WHERE doctor_name = ? AND batch_id = ?",
+                "SELECT DISTINCT case_id FROM doctor_reviews WHERE LOWER(TRIM(doctor_name)) = LOWER(TRIM(?)) AND batch_id = ?",
                 (doctor_name, batch_id),
             )
             return [r[0] for r in cur.fetchall()]

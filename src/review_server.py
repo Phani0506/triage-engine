@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import mimetypes
 import os
+import random
 import ssl
 import sys
 from http import HTTPStatus
@@ -127,6 +129,10 @@ class ReviewRequestHandler(BaseHTTPRequestHandler):
             target_doctor = doc_query or auth.doctor_name
             if target_doctor:
                 completed_ids = self.case_store.get_doctor_completed_case_ids(target_doctor, batch_id)
+                # Deterministic pseudo-random shuffle per doctor to interleave urgencies naturally
+                seed_val = int(hashlib.md5(f"{target_doctor.strip().lower()}_{batch_id}".encode()).hexdigest(), 16) % (10**8)
+                rng = random.Random(seed_val)
+                rng.shuffle(cases)
             summaries = [
                 {
                     "case_id": c.case_id,
@@ -155,8 +161,9 @@ class ReviewRequestHandler(BaseHTTPRequestHandler):
             if auth.role != "admin":
                 return self._send_error_json(HTTPStatus.FORBIDDEN, "Access denied: Admin role required.")
             batch_id = query.get("batch", [None])[0]
+            include_test = query.get("include_test", ["false"])[0].lower() in ("true", "1", "yes")
             rep_gen = FeedbackReportGenerator(case_store=self.case_store)
-            report_text = rep_gen.generate_markdown_report(batch_id=batch_id)
+            report_text = rep_gen.generate_markdown_report(batch_id=batch_id, exclude_test=not include_test)
             if path == "/report":
                 # Render formatted HTML report wrapper
                 html_body = f"""<!DOCTYPE html>

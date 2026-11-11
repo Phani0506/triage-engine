@@ -17,12 +17,19 @@ class FeedbackReportGenerator:
     def __init__(self, case_store: Optional[CaseStore] = None, db_path: str = "data/triage_reviews.db"):
         self.case_store = case_store or CaseStore(db_path=db_path)
 
-    def generate_markdown_report(self, batch_id: Optional[str] = None) -> str:
+    def generate_markdown_report(self, batch_id: Optional[str] = None, exclude_test: bool = True) -> str:
         all_reviews = self.case_store.get_all_reviews()
-        if batch_id:
-            reviews = [r for r in all_reviews if r.get("batch_id") == batch_id]
+        if exclude_test:
+            test_patterns = ["testing", "test", "kohli", "trial"]
+            reviews = [
+                r for r in all_reviews
+                if not any(tp in (r.get("doctor_name") or "").lower() for tp in test_patterns)
+            ]
         else:
             reviews = all_reviews
+
+        if batch_id:
+            reviews = [r for r in reviews if r.get("batch_id") == batch_id]
 
         if not reviews:
             return (

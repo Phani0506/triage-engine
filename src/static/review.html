@@ -7,8 +7,28 @@
   <link rel="stylesheet" href="/review.css">
 </head>
 <body>
+  <div id="server-status-banner" class="server-status-banner hidden">
+    ⏳ Connecting to clinical server (waking up cloud service, please wait a moment)...
+  </div>
+
   <div class="safety-banner">
     ⚠️ <strong>Synthetic cases only</strong> — Do not enter real patient data.
+  </div>
+
+  <!-- Doctor Selection Modal -->
+  <div id="doctor-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-icon">🩺</div>
+      <h3>Select Reviewer Profile</h3>
+      <p class="modal-subtext">Select your name to record your clinical evaluations and validation sign-offs:</p>
+      <select id="doctor-select-dropdown" class="doctor-select">
+        <option value="" disabled selected>-- Select your name --</option>
+        <option value="Dr. Surbhi">Dr. Surbhi</option>
+        <option value="Dr. Smitha">Dr. Smitha</option>
+        <option value="Adarsh (Testing)">Adarsh (Testing)</option>
+      </select>
+      <button id="btn-confirm-doctor" class="btn btn-primary" disabled>Start Clinical Review</button>
+    </div>
   </div>
 
   <header class="top-bar">
@@ -17,7 +37,7 @@
       <span id="doctor-display-name">Loading...</span>
       <button id="btn-change-name" class="btn-text-small">Change</button>
     </div>
-    <div class="batch-badge" id="batch-display">Batch 1</div>
+    <div class="batch-badge" id="batch-display">Set 1 (18 Cases)</div>
   </header>
 
   <div class="progress-container">
@@ -39,7 +59,7 @@
     <div id="completion-state" class="center-content hidden">
       <div class="done-icon">🎉</div>
       <h2>Batch Completed!</h2>
-      <p>You have reviewed all cases in this batch.</p>
+      <p>You have reviewed all cases in this validation set.</p>
       <p>Thank you for contributing your clinical expertise to calibrate the triage engine.</p>
       <button id="btn-restart-batch" class="btn btn-secondary">Review Batch Again</button>
     </div>
@@ -60,7 +80,7 @@
 
       <!-- Expandable Structured Inputs -->
       <details class="structured-inputs-drawer">
-        <summary>View Full Structured Inputs (P1–P72)</summary>
+        <summary>📋 View Detailed Patient Questionnaire Answers</summary>
         <div id="raw-inputs-content" class="raw-inputs-grid">
           <!-- Filled by JS -->
         </div>
@@ -99,13 +119,20 @@
           </button>
         </div>
 
-        <div class="input-group">
-          <label for="doctor-notes">Initial Clinical Notes (Optional):</label>
-          <textarea id="doctor-notes" rows="2" placeholder="e.g., Needs ultrasound and bimanual exam before initiating hormones..."></textarea>
+        <div class="urgency-legend">
+          <div class="urgency-legend-item">🟢 <strong>Self-care:</strong> Routine tracking & reassurance</div>
+          <div class="urgency-legend-item">🟡 <strong>Teleconsult:</strong> Non-urgent GP / gyn consultation</div>
+          <div class="urgency-legend-item">🟠 <strong>Clinic visit:</strong> In-person exam or imaging needed</div>
+          <div class="urgency-legend-item">🔴 <strong>Emergency:</strong> Immediate A&E / hospital care</div>
+        </div>
+
+        <div class="input-group" style="margin-top: 1rem;">
+          <label for="doctor-notes">Doctor's Clinical Notes & Suspected Diagnosis (Optional):</label>
+          <textarea id="doctor-notes" rows="2" placeholder="e.g., Clinical picture suggests ruptured hemorrhagic cyst; requires pelvic ultrasound..."></textarea>
         </div>
 
         <button id="btn-submit-assessment" class="btn btn-primary" disabled>
-          Submit Assessment & Reveal Engine Result
+          Submit Evaluation & Compare with Engine
         </button>
       </section>
 
@@ -122,7 +149,7 @@
           </div>
 
           <div class="engine-reasons">
-            <h4>Clinical Rationale & Rules Fired:</h4>
+            <h4>Clinical Rationale & Guidelines Identified:</h4>
             <ul id="engine-reasons-list"></ul>
           </div>
 
@@ -137,28 +164,36 @@
           </div>
         </div>
 
+        <!-- Optional Suggestions on Exact Agreement -->
+        <div id="agreement-section" class="agreement-notes-section hidden">
+          <div class="input-group">
+            <label for="agreement-doctor-notes">💡 Additional Doctor Suggestions / Advice (Optional):</label>
+            <textarea id="agreement-doctor-notes" rows="2" placeholder="e.g., Suggest pelvic ultrasound on day 3-5 of cycle; check serum ferritin and prolactin..."></textarea>
+          </div>
+        </div>
+
         <!-- Disagreement Questions (Shown only when engine != doctor) -->
         <div id="disagreement-form" class="disagreement-box hidden">
           <h4>Clinical Disagreement Feedback</h4>
 
           <div class="input-group">
-            <label>Who is right in this scenario?</label>
+            <label>Who is more appropriate in this clinical scenario?</label>
             <div class="radio-group">
               <label><input type="radio" name="verdict" value="doctor_is_right" checked> Doctor is right</label>
               <label><input type="radio" name="verdict" value="engine_is_right"> Engine is right</label>
-              <label><input type="radio" name="verdict" value="both_fine"> Both are acceptable</label>
+              <label><input type="radio" name="verdict" value="both_fine"> Both are clinically acceptable</label>
             </div>
           </div>
 
           <div class="input-group">
-            <label>What is the main problem? (Select all that apply)</label>
+            <label>What is the primary concern? (Select all that apply)</label>
             <div class="chips-container" id="problem-chips-container">
-              <label class="chip"><input type="checkbox" value="Level too high"> Level too high</label>
-              <label class="chip"><input type="checkbox" value="Level too low" id="chip-level-too-low"> Level too low</label>
-              <label class="chip"><input type="checkbox" value="Missing a question"> Missing a question</label>
-              <label class="chip"><input type="checkbox" value="Wrong advice"> Wrong advice</label>
-              <label class="chip"><input type="checkbox" value="Reason unclear"> Reason unclear</label>
-              <label class="chip"><input type="checkbox" value="Rule is wrong"> Rule is wrong</label>
+              <label class="chip"><input type="checkbox" value="Recommendation too conservative" id="chip-level-too-low"> Recommendation too conservative</label>
+              <label class="chip"><input type="checkbox" value="Recommendation too aggressive"> Recommendation too aggressive</label>
+              <label class="chip"><input type="checkbox" value="Missing an important clinical question"> Missing important question</label>
+              <label class="chip"><input type="checkbox" value="Clinical advice needs refinement"> Advice needs refinement</label>
+              <label class="chip"><input type="checkbox" value="Diagnostic rationale unclear"> Rationale unclear</label>
+              <label class="chip"><input type="checkbox" value="Clinical guideline disagreement"> Guideline disagreement</label>
             </div>
           </div>
 
@@ -169,7 +204,7 @@
         </div>
 
         <button id="btn-next-case" class="btn btn-primary">
-          Next Case →
+          Save & Next Case →
         </button>
       </section>
     </div>

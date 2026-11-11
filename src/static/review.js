@@ -29,6 +29,11 @@
   const elCompletionState = document.getElementById('completion-state');
   const elCaseContent = document.getElementById('case-content');
 
+  const serverStatusBanner = document.getElementById('server-status-banner');
+  const doctorModal = document.getElementById('doctor-modal');
+  const doctorSelectDropdown = document.getElementById('doctor-select-dropdown');
+  const btnConfirmDoctor = document.getElementById('btn-confirm-doctor');
+
   const elCaseIdBadge = document.getElementById('case-id-badge');
   const elCaseTopicBadge = document.getElementById('case-topic-badge');
   const elSummaryList = document.getElementById('summary-lines-list');
@@ -47,6 +52,8 @@
   const elEngineTestsBox = document.getElementById('engine-tests-box');
   const elEngineTestsList = document.getElementById('engine-tests-list');
 
+  const agreementSection = document.getElementById('agreement-section');
+  const agreementDoctorNotes = document.getElementById('agreement-doctor-notes');
   const elDisagreementForm = document.getElementById('disagreement-form');
   const elDisagreementPromptLabel = document.getElementById('disagreement-prompt-label');
   const chipLevelTooLow = document.getElementById('chip-level-too-low');
@@ -57,9 +64,8 @@
   // --- INITIALIZATION ---
   function init() {
     parseUrlFragment();
-    initDoctorIdentity();
     setupEventListeners();
-    loadBatch();
+    initDoctorIdentity();
   }
 
   function parseUrlFragment() {
@@ -69,19 +75,16 @@
       const params = new URLSearchParams(hash);
       if (params.has('t')) {
         let t = params.get('t') || '';
-        // Sanitize any accidental markdown trailing characters
         t = t.split(/[^a-zA-Z0-9_-]/)[0] || '';
         authToken = t;
         sessionStorage.setItem('triage_token', authToken);
       }
       if (params.has('batch')) {
         let b = params.get('batch') || 'batch1';
-        // Sanitize any accidental markdown trailing characters
         b = b.split(/[^a-zA-Z0-9_-]/)[0] || 'batch1';
         batchId = b;
         sessionStorage.setItem('triage_batch', batchId);
       }
-      // Security: Strip hash from URL so token is not exposed in address bar
       history.replaceState(null, '', window.location.pathname);
     }
 
@@ -93,28 +96,49 @@
 
     batchId = (sessionStorage.getItem('triage_batch') || 'batch1').split(/[^a-zA-Z0-9_-]/)[0] || 'batch1';
     sessionStorage.setItem('triage_batch', batchId);
-    elBatchDisplay.textContent = batchId.toUpperCase();
+    elBatchDisplay.textContent = 'Set 1 (18 Cases)';
   }
 
   function initDoctorIdentity() {
-    doctorName = localStorage.getItem('triage_doctor_name') || '';
-    while (!doctorName || !doctorName.trim()) {
-      doctorName = prompt('Welcome, Doctor! Please enter your name (e.g. Dr. Adarsh, Dr. Smitha):') || '';
-      if (doctorName && doctorName.trim()) {
-        localStorage.setItem('triage_doctor_name', doctorName.trim());
+    doctorName = (localStorage.getItem('triage_doctor_name') || '').trim();
+    if (doctorName) {
+      elDoctorName.textContent = doctorName;
+      if (doctorModal) doctorModal.classList.add('hidden');
+      loadBatch();
+    } else {
+      if (doctorModal) {
+        doctorModal.classList.remove('hidden');
+        if (doctorSelectDropdown) doctorSelectDropdown.value = '';
+        if (btnConfirmDoctor) btnConfirmDoctor.disabled = true;
       }
     }
-    elDoctorName.textContent = doctorName.trim();
   }
 
   function setupEventListeners() {
-    btnChangeName.addEventListener('click', async () => {
-      const newName = prompt('Enter your name:', doctorName);
-      if (newName && newName.trim()) {
-        doctorName = newName.trim();
-        localStorage.setItem('triage_doctor_name', doctorName);
-        elDoctorName.textContent = doctorName;
-        await loadBatch();
+    if (doctorSelectDropdown && btnConfirmDoctor) {
+      doctorSelectDropdown.addEventListener('change', () => {
+        btnConfirmDoctor.disabled = !doctorSelectDropdown.value;
+      });
+
+      btnConfirmDoctor.addEventListener('click', () => {
+        const selected = doctorSelectDropdown.value;
+        if (selected) {
+          doctorName = selected;
+          localStorage.setItem('triage_doctor_name', doctorName);
+          elDoctorName.textContent = doctorName;
+          doctorModal.classList.add('hidden');
+          loadBatch();
+        }
+      });
+    }
+
+    btnChangeName.addEventListener('click', () => {
+      if (doctorModal) {
+        doctorModal.classList.remove('hidden');
+        if (doctorSelectDropdown && doctorName) {
+          doctorSelectDropdown.value = doctorName;
+          if (btnConfirmDoctor) btnConfirmDoctor.disabled = false;
+        }
       }
     });
 
@@ -138,23 +162,50 @@
     });
   }
 
+  // Active requests counter for cold-start server banner
+  let activeRequests = 0;
+  let coldStartTimer = null;
+
   async function apiFetch(url, options = {}) {
     options.headers = options.headers || {};
     options.headers['Authorization'] = `Bearer ${authToken}`;
     options.headers['Content-Type'] = 'application/json';
 
-    const resp = await fetch(url, options);
-    if (resp.status === 401) {
-      alert('Authentication failed: Invalid or expired token.');
-      sessionStorage.removeItem('triage_token');
-      window.location.reload();
-      throw new Error('Unauthorized');
+    activeRequests++;
+    if (!coldStartTimer) {
+      coldStartTimer = setTimeout(() => {
+        if (activeRequests > 0 && serverStatusBanner) {
+          serverStatusBanner.classList.remove('hidden');
+        }
+      }, 600);
     }
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(err.error || 'Server error');
+
+    try {
+      const resp = await fetch(url, options);
+      if (resp.status === 401) {
+        alert('Authentication error. Refreshing session...');
+        sessionStorage.removeItem('triage_token');
+        window.location.reload();
+        throw new Error('Unauthorized');
+      }
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(err.error || 'Server error');
+      }
+      return await resp.json();
+    } finally {
+      activeRequests--;
+      if (activeRequests <= 0) {
+        activeRequests = 0;
+        if (coldStartTimer) {
+          clearTimeout(coldStartTimer);
+          coldStartTimer = null;
+        }
+        if (serverStatusBanner) {
+          serverStatusBanner.classList.add('hidden');
+        }
+      }
     }
-    return resp.json();
   }
 
   // --- BATCH LOADING ---
@@ -267,7 +318,7 @@
     if (!selectedLevel || !selectedColour) return;
 
     btnSubmitAssessment.disabled = true;
-    btnSubmitAssessment.textContent = 'Evaluating...';
+    btnSubmitAssessment.innerHTML = '<span class="spinner-inline"></span> Comparing with Engine...';
 
     try {
       const payload = {
@@ -291,7 +342,7 @@
     } catch (e) {
       alert(`Error submitting assessment: ${e.message}`);
       btnSubmitAssessment.disabled = false;
-      btnSubmitAssessment.textContent = 'Submit Assessment & Reveal Engine Result';
+      btnSubmitAssessment.textContent = 'Submit Evaluation & Compare with Engine';
     }
   }
 
@@ -308,11 +359,11 @@
     elEngineBadge.textContent = `${formatColour(engColour)} (${formatLevel(engLevel)})`;
     elEngineBadge.className = `urgency-badge badge-${engColour}`;
 
-    // Reasons
+    // Reasons (Clean doctor-friendly presentation without raw rule codes)
     elEngineReasons.innerHTML = '';
     (result.reasons || []).forEach(r => {
       const li = document.createElement('li');
-      li.innerHTML = `<strong>[${r.rule}]</strong> ${r.text}`;
+      li.textContent = r.text || r.rule || 'Clinical guideline criterion satisfied.';
       elEngineReasons.appendChild(li);
     });
 
@@ -333,19 +384,24 @@
       elEngineTestsBox.classList.add('hidden');
     }
 
-    // Agreement Banner & Disagreement Form
+    // Agreement Banner & Additional Suggestion Box
     if (isAgreed) {
       elAgreementBanner.className = 'agreement-banner agreed';
-      elAgreementBanner.innerHTML = `✅ <strong>Agreement!</strong> Engine matched your assessment (<em>${formatLevel(selectedLevel)}</em>).`;
+      elAgreementBanner.innerHTML = `✅ <strong>Agreement!</strong> Clinical engine matched your assessment (<em>${formatLevel(selectedLevel)}</em>).`;
+      if (agreementSection) {
+        agreementSection.classList.remove('hidden');
+        if (agreementDoctorNotes) agreementDoctorNotes.value = '';
+      }
       elDisagreementForm.classList.add('hidden');
-      btnNextCase.textContent = 'Next Case →';
+      btnNextCase.textContent = 'Save & Next Case →';
     } else {
       elAgreementBanner.className = 'agreement-banner disagreed';
       const dirText = result.agreement_status === 'engine_lower' ? 'Lower than' : 'Higher than';
-      elAgreementBanner.innerHTML = `⚠️ <strong>Disagreement:</strong> Engine assigned <em>${formatLevel(engLevel)}</em> (${dirText} your <em>${formatLevel(selectedLevel)}</em>).`;
+      elAgreementBanner.innerHTML = `⚠️ <strong>Variance:</strong> Engine assigned <em>${formatLevel(engLevel)}</em> (${dirText} your <em>${formatLevel(selectedLevel)}</em>).`;
+      if (agreementSection) agreementSection.classList.add('hidden');
       elDisagreementForm.classList.remove('hidden');
 
-      // Pre-check "Level too low" if engine under-triaged
+      // Pre-check "Recommendation too conservative" if engine under-triaged
       if (chipLevelTooLow) {
         chipLevelTooLow.checked = (result.agreement_status === 'engine_lower');
       }
@@ -358,8 +414,30 @@
   // --- STEP 3: PROCEED / FEEDBACK ---
   async function proceedToNextCase() {
     btnNextCase.disabled = true;
+    btnNextCase.innerHTML = '<span class="spinner-inline"></span> Saving...';
 
-    // If disagreement form is visible, submit feedback first
+    // 1. If agreement section has doctor suggestions, submit them
+    if (agreementSection && !agreementSection.classList.contains('hidden') && currentReviewId) {
+      const extraNotes = agreementDoctorNotes ? agreementDoctorNotes.value.trim() : '';
+      if (extraNotes) {
+        try {
+          await apiFetch('/api/reviews/submit-feedback', {
+            method: 'POST',
+            body: JSON.stringify({
+              review_id: currentReviewId,
+              doctor_name: doctorName,
+              verdict: 'both_fine',
+              problem_chips: [],
+              feedback_text: extraNotes,
+            }),
+          });
+        } catch (e) {
+          console.error('Agreement feedback submission error:', e);
+        }
+      }
+    }
+
+    // 2. If disagreement form is visible, submit feedback
     if (!elDisagreementForm.classList.contains('hidden') && currentReviewId) {
       try {
         const checkedChips = [];
@@ -392,6 +470,7 @@
       await loadCase(batchCases[currentCaseIndex].case_id);
     }
     btnNextCase.disabled = false;
+    btnNextCase.textContent = 'Save & Next Case →';
   }
 
   function formatLevel(lvl) {

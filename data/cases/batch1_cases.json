@@ -8,7 +8,7 @@
     "patient_summary_lines": [
       "28-year-old female presenting with acute severe lower abdominal pain.",
       "Missed period by 3 weeks, no recent pregnancy test taken.",
-      "Risk of ectopic pregnancy requires emergency evaluation."
+      "Reports pain is sharp, constant, and worsening over the past 4 hours."
     ],
     "patient_inputs": {
       "age": 32,
@@ -110,7 +110,7 @@
     "patient_summary_lines": [
       "30-year-old female with sudden right shoulder-tip pain.",
       "Associated with lower pelvic pain and abnormal vaginal bleeding.",
-      "Signs consistent with hemoperitoneum; emergency."
+      "Feeling lightheaded upon standing and noticeably pale."
     ],
     "patient_inputs": {
       "age": 23,
@@ -211,7 +211,7 @@
     "patient_summary_lines": [
       "26-year-old female soaking through pads every hour for 3 hours.",
       "Reports episode of fainting (syncope) and dizziness.",
-      "Hemodynamic instability requires immediate hospital assessment."
+      "Passing large clots with resting heart rate feeling rapid."
     ],
     "patient_inputs": {
       "age": 28,
@@ -311,7 +311,7 @@
     "patient_summary_lines": [
       "23-year-old female with abrupt onset of severe unilateral pain.",
       "Accompanied by persistent vomiting and nausea.",
-      "Ovarian torsion risk requires urgent ultrasound / surgical review."
+      "Unable to keep fluids down with severe localized pelvic tenderness."
     ],
     "patient_inputs": {
       "age": 22,
@@ -410,7 +410,7 @@
     "patient_summary_lines": [
       "29-year-old female 3 weeks postpartum.",
       "Sudden onset heavy vaginal clots accompanied by fever.",
-      "Postpartum secondary hemorrhage / sepsis risk."
+      "High fever (38.8\u00b0C), chills, and feeling severely unwell."
     ],
     "patient_inputs": {
       "age": 25,
@@ -509,7 +509,7 @@
     "patient_summary_lines": [
       "24-year-old female with 48-day menstrual cycle gaps.",
       "Excess coarse facial hair on chin and upper lip.",
-      "Pregnancy excluded; teleconsultation for hormone/ultrasound workup."
+      "Not pregnant and not currently using hormonal contraception."
     ],
     "patient_inputs": {
       "age": 24,
@@ -608,7 +608,7 @@
     "patient_summary_lines": [
       "27-year-old female reporting rapid facial hair growth over 4 months.",
       "Associated deepening of voice and temporal hair thinning.",
-      "Clinic visit and urgent endocrine evaluation required."
+      "Previously had regular monthly cycles with no prior hair growth."
     ],
     "patient_inputs": {
       "age": 33,
@@ -708,7 +708,7 @@
     "patient_summary_lines": [
       "29-year-old female with regular 28-day periods.",
       "Noticeable coarse excess body and facial hair.",
-      "Evaluation of hyperandrogenism via teleconsultation."
+      "Mild persistent acne on jawline without signs of virilization."
     ],
     "patient_inputs": {
       "age": 23,
@@ -807,7 +807,7 @@
     "patient_summary_lines": [
       "23-year-old female with predictable 28-day cycles.",
       "No hirsutism, cystic acne, or alopecia.",
-      "Reassurance and self-care tracking."
+      "No pelvic pain or abnormal bleeding; tracking cycles on mobile app."
     ],
     "patient_inputs": {
       "age": 30,
@@ -906,7 +906,7 @@
     "patient_summary_lines": [
       "25-year-old female with 45-day cycle gaps.",
       "Severe cystic acne refractory to topical care; no hirsutism.",
-      "Endocrine evaluation recommended via teleconsultation."
+      "Skin breakouts persisting despite 6 months of over-the-counter washes."
     ],
     "patient_inputs": {
       "age": 26,
@@ -1006,7 +1006,7 @@
     "patient_summary_lines": [
       "26-year-old female with no period for 95 days (negative pregnancy test).",
       "Facial hirsutism, BMI 29, dark skin velvety patches.",
-      "Teleconsultation for progestogen withdrawal and PCOS assessment."
+      "Prolonged amenorrhea following previously irregular cycles."
     ],
     "patient_inputs": {
       "age": 26,
@@ -1108,7 +1108,7 @@
     "patient_summary_lines": [
       "19-year-old female, menarche at 17 (gynecological age 2 years).",
       "Cycles 42 days apart.",
-      "Immature hypothalamic-pituitary-ovarian axis; developmental deferral."
+      "No excessive body hair, severe acne, or significant pelvic pain."
     ],
     "patient_inputs": {
       "age": 19,
@@ -1207,8 +1207,8 @@
     "difficulty": "borderline",
     "patient_summary_lines": [
       "30-year-old female with 48-day cycle variation and mild hirsutism.",
-      "BMI 23.4 kg/m2 (exceeds Asian Indian 23.0 threshold).",
-      "Teleconsultation with early cardiometabolic screen."
+      "BMI 23.4 kg/m2 (South Asian background).",
+      "Family history of early-onset type 2 diabetes mellitus."
     ],
     "patient_inputs": {
       "age": 30,
@@ -1308,7 +1308,7 @@
     "patient_summary_lines": [
       "28-year-old female with irregular periods and mild hirsutism.",
       "Reports bleeding after sexual intercourse on multiple occasions.",
-      "Cervical visual inspection required; Amber clinic visit supersedes Yellow."
+      "Intermenstrual spotting noted across the last two menstrual cycles."
     ],
     "patient_inputs": {
       "age": 28,
@@ -1407,7 +1407,7 @@
     "patient_summary_lines": [
       "25-year-old female with 95 days since last period.",
       "Negative urine test done only 12 days after unprotected sex.",
-      "Test invalid for pregnancy exclusion; prompt repeat test at 21 days."
+      "Sexual exposure occurred less than two weeks prior to testing."
     ],
     "patient_inputs": {
       "age": 25,
@@ -1505,8 +1505,8 @@
     "difficulty": "missing_info",
     "patient_summary_lines": [
       "24-year-old female currently on combined oral contraceptive pill.",
-      "Seeking evaluation for suspected PCOS.",
-      "Hormone evaluation requires minimum 3-month washout post-pill."
+      "Seeking evaluation for irregular cycles experienced prior to pill use.",
+      "Wants to know about hormonal testing while on oral contraception."
     ],
     "patient_inputs": {
       "age": 24,
@@ -1605,7 +1605,7 @@
     "patient_summary_lines": [
       "22-year-old female with regular cycles.",
       "Acne severity and hair thinning status unconfirmed.",
-      "Safety lockout prevents premature Green reassurance; ask missing inputs."
+      "Did not provide details on skin changes or family history."
     ],
     "patient_inputs": {
       "age": 22,
@@ -1705,7 +1705,7 @@
     "patient_summary_lines": [
       "31-year-old female with noticeable facial hirsutism.",
       "Speed of onset and voice deepening unknown.",
-      "Prompt follow-up question to exclude acute androgen neoplasm."
+      "Onset timeline and progression rate of excess hair growth uncharacterized."
     ],
     "patient_inputs": {
       "age": 31,
