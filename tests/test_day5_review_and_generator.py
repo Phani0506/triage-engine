@@ -29,7 +29,7 @@ class TestDay5ReviewAndGenerator(unittest.TestCase):
 
     def test_batch1_cases_generation_and_schema_conformity(self):
         cases = self.generator.generate_batch1_cases()
-        self.assertEqual(len(cases), 18)
+        self.assertEqual(len(cases), 38)
 
         for c in cases:
             self.assertTrue(c.case_id.startswith("BATCH1-"))

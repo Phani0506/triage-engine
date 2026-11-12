@@ -634,6 +634,30 @@ class SyntheticPatientGenerator:
             ("BATCH1-016", "BP-PCOS-COCP-WASHOUT"),
             ("BATCH1-017", "BP-PCOS-GREEN-LOCKOUT"),
             ("BATCH1-018", "BP-PCOS-UNKNOWN-VIRIL"),
+            # 1 Additional PCOS (Metabolic)
+            ("BATCH1-019", "BP-PCOS-007"),
+            # 6 Endometriosis
+            ("BATCH1-020", "BP-ENDO-001"),
+            ("BATCH1-021", "BP-ENDO-002"),
+            ("BATCH1-022", "BP-ENDO-003"),
+            ("BATCH1-023", "BP-ENDO-004"),
+            ("BATCH1-024", "BP-ENDO-005"),
+            ("BATCH1-025", "BP-ENDO-006"),
+            # 9 Fertility / Subfertility
+            ("BATCH1-026", "BP-FERT-001"),
+            ("BATCH1-027", "BP-FERT-002"),
+            ("BATCH1-028", "BP-FERT-003"),
+            ("BATCH1-029", "BP-FERT-004"),
+            ("BATCH1-030", "BP-FERT-005"),
+            ("BATCH1-031", "BP-FERT-006"),
+            ("BATCH1-032", "BP-FERT-007"),
+            ("BATCH1-033", "BP-FERT-008"),
+            ("BATCH1-034", "BP-FERT-AGE35-PENDING"),
+            # 4 Irregular Bleeding / AUB
+            ("BATCH1-035", "BP-IRR-004"),
+            ("BATCH1-036", "BP-IRR-005"),
+            ("BATCH1-037", "BP-IRR-008"),
+            ("BATCH1-038", "BP-IRR-009"),
         ]
 
         bp_map = {bp.blueprint_id: bp for bp in ALL_BLUEPRINTS}

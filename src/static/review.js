@@ -96,7 +96,7 @@
 
     batchId = (sessionStorage.getItem('triage_batch') || 'batch1').split(/[^a-zA-Z0-9_-]/)[0] || 'batch1';
     sessionStorage.setItem('triage_batch', batchId);
-    elBatchDisplay.textContent = 'Set 1 (18 Cases)';
+    elBatchDisplay.textContent = 'All Topics (38 Cases)';
   }
 
   function initDoctorIdentity() {

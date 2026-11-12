@@ -326,16 +326,53 @@ def run_review_server(
     case_store = CaseStore(db_path=db_path)
     triage_engine = TriageEngine()
 
-    # Auto-seed default batch cases if starting on fresh cloud database
+    # Auto-seed default batch cases if starting on fresh cloud database or expanding batch
     existing_cases = case_store.load_cases_by_batch(batch_id)
-    if not existing_cases:
-        from .synthetic_generator import SyntheticPatientGenerator
-        print(f"Fresh database detected. Auto-seeding {batch_id} cases...")
-        gen = SyntheticPatientGenerator(seed=42)
-        batch_cases = gen.generate_batch1_cases()
+    from .synthetic_generator import SyntheticPatientGenerator
+    gen = SyntheticPatientGenerator(seed=42)
+    batch_cases = gen.generate_batch1_cases()
+    if len(existing_cases) < len(batch_cases):
+        existing_ids = {c.case_id for c in existing_cases}
         for c in batch_cases:
-            case_store.save_synthetic_case(c)
-        print(f"Successfully seeded {len(batch_cases)} cases into {db_path}!")
+            if c.case_id not in existing_ids:
+                case_store.save_synthetic_case(c)
+        print(f"Seeded up to {len(batch_cases)} cases into {db_path}!")
+
+    # Auto-restore doctor reviews backup if database has zero reviews
+    backup_reviews_path = Path(__file__).parent.parent / "data" / "exports" / "dr_smitha_reviews_backup.json"
+    if backup_reviews_path.exists():
+        conn = case_store._get_connection()
+        try:
+            with conn:
+                cur = conn.cursor()
+                cur.execute("SELECT COUNT(*) FROM doctor_reviews")
+                if cur.fetchone()[0] == 0:
+                    with open(backup_reviews_path, "r", encoding="utf-8") as f:
+                        seed_data = json.load(f)
+                    for r in seed_data.get("reviews", []):
+                        conn.execute(
+                            """
+                            INSERT OR REPLACE INTO doctor_reviews (
+                                review_id, case_id, case_type, batch_id, doctor_name,
+                                patient_data_json, doctor_level, doctor_colour, doctor_initial_notes,
+                                engine_output_json, engine_level, engine_colour, fired_rule_ids_json,
+                                engine_version, rule_set_version, agreement_status, review_status, submitted_at,
+                                verdict, problem_chips_json, doctor_feedback_text, correction_request
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            (
+                                r.get("review_id"), r.get("case_id"), r.get("case_type"), r.get("batch_id"),
+                                r.get("doctor_name"), r.get("patient_data_json"), r.get("doctor_level"),
+                                r.get("doctor_colour"), r.get("doctor_initial_notes"), r.get("engine_output_json"),
+                                r.get("engine_level"), r.get("engine_colour"), r.get("fired_rule_ids_json"),
+                                r.get("engine_version"), r.get("rule_set_version"), r.get("agreement_status"),
+                                r.get("review_status"), r.get("submitted_at"), r.get("verdict"),
+                                r.get("problem_chips_json"), r.get("doctor_feedback_text"), r.get("correction_request")
+                            )
+                        )
+                    print(f"Auto-restored {len(seed_data.get('reviews', []))} reviews from backup.")
+        finally:
+            conn.close()
 
     server = ThreadingHTTPServer((host, port), ReviewRequestHandler)
     server.security_manager = security_manager  # type: ignore
